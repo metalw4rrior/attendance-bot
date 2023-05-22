@@ -2,10 +2,11 @@ import sqlite3 as sl
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from config import API_TOKEN
 from sqlite_func import db_start, curator_cheker, password_cheker,edit_profile
-from buttons import kb, HELP_COMMAND
+from buttons import kb
 
 async def on_startup(self):
     await db_start()
@@ -48,13 +49,12 @@ async def load_password(message: types.Message, state: FSMContext):
         await Pas.password.set()
     else:
         await edit_profile(message.text, message.from_user.id)
-        await bot.send_message(message.from_user.id,
-                               text='Вы успешно прошли авторизацию. ',
+        await message.answer(text='Вы успешно прошли авторизацию.',
                                reply_markup=kb)
     await state.finish()
 
 reason_data = []
-@dp.message_handler(commands=["vvod"])
+@dp.message_handler(Text(equals="Ввод статистики"))
 async def vvod_command(message: types.Message):
     await message.answer('Введите количество студентов, отсутствующих по НЕУВАЖИТЕЛЬНОЙ причине')
     await Attendance.disrespectful_reason.set()
@@ -86,17 +86,10 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
                                reply_markup=kb)
     await state.finish()
 
-
-@dp.message_handler(commands="help")
-async def help_command(message: types.Message):
-    await bot.send_message(message.from_user.id,
-                           text=HELP_COMMAND,
-                           reply_markup=kb)
-
-@dp.message_handler(commands="description")
-async def help_command(message: types.Message):
-    await bot.send_message(message.from_user.id,
-                           text="Бот предназначен для отправки статистики по посещению")
+@dp.message_handler(Text(equals="Описание"))
+async def description_command(message: types.Message):
+    await message.answer(message.from_user.id,
+                         text="Бот предназначен для отправки статистики по посещению")
 
     # Запуск бота
 if __name__ == "__main__":

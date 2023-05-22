@@ -25,15 +25,7 @@ for i in grp_btns_names:
 
 
 kb = ReplyKeyboardMarkup(resize_keyboard=True)
-b1 = KeyboardButton("/vvod")
-b2 = KeyboardButton("/description")
-b3 = KeyboardButton("/help")
-b4 = KeyboardButton("/settings")
-kb.add(b1,b2).add(b3,b4)
-
-
-HELP_COMMAND = """
-/help - список команд
-/description - описание бота
-"""
+b1 = KeyboardButton("Ввод статистики")
+b2 = KeyboardButton("Описание")
+kb.add(b1,b2)
 
