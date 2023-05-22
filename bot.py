@@ -31,7 +31,7 @@ class Attendance(StatesGroup):
 async def start_command(message: types.Message):
     check = curator_cheker(str(message.from_user.id))
     if await check: #not in database:
-        await message.answer('Добро пожаловать. Для того, чтобы продолжить работу, введите ваш пароль.')
+        await message.answer('Добро пожаловать! Для того, чтобы продолжить работу, введите ваш пароль.')
         await Pas.password.set()
     else:
         await bot.send_message(message.from_user.id,
@@ -51,8 +51,41 @@ async def load_password(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id,
                                text='Вы успешно прошли авторизацию. ',
                                reply_markup=kb)
-
     await state.finish()
+
+reason_data = []
+@dp.message_handler(commands=["vvod"])
+async def vvod_command(message: types.Message):
+    await message.answer('Введите количество студентов, отсутствующих по НЕУВАЖИТЕЛЬНОЙ причине')
+    await Attendance.disrespectful_reason.set()
+
+@dp.message_handler(state = Attendance.disrespectful_reason)
+async def load_reason_N(message: types.Message, state: FSMContext)-> None:
+    reason_data.append(int(message.text))     #НЕУВАЖИТЕЛЬНАЯ ПРИЧИНА ИНДЕКС [0]
+    await message.answer('Введите количество студентов, отсутствующих по УВАЖИТЕЛЬНОЙ причине')
+    await Attendance.valid_reason.set()
+
+@dp.message_handler(state = Attendance.valid_reason)
+async def load_reason_U(message: types.Message, state: FSMContext)-> None:
+    reason_data.append(int(message.text)) #УВАЖИТЕЛЬНАЯ ПРИЧИНА ИНДЕКС [1]
+    await message.answer('Введите количество студентов, отсутствующих по БОЛЕЗНИ')
+    await Attendance.disease_reason.set()
+
+@dp.message_handler(state = Attendance.disease_reason)
+async def load_reason_B(message: types.Message, state: FSMContext)-> None:
+    reason_data.append(int(message.text)) #БОЛЕЗНЬ  ИНДЕКС [2]
+    await message.answer('Введите количество студентов, ПРИСУТСТВУЮЩИХ на паре')
+    await Attendance.present.set()
+
+@dp.message_handler(state = Attendance.present)
+async def load_reason_B(message: types.Message, state: FSMContext)-> None:
+    reason_data.append(int(message.text)) #КТО ЗДЕСЬ ИНДЕКС [3]
+    print(reason_data)
+    await bot.send_message(message.from_user.id,
+                               text='Вы успешно ввели данные. ',
+                               reply_markup=kb)
+    await state.finish()
+
 
 @dp.message_handler(commands="help")
 async def help_command(message: types.Message):
