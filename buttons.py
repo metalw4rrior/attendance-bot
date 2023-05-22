@@ -1,6 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove 
 import sqlite3 as sl
 
+# git test
 
 # Хз как запихать в sqlite_func, у меня ошибка вылазит :Р
 db = sl.connect('database_project.db')
