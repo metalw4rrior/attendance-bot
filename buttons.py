@@ -25,7 +25,7 @@ for i in grp_btns_names:
 
 
 kb = ReplyKeyboardMarkup(resize_keyboard=True)
-b1 = KeyboardButton("посещение")
+b1 = KeyboardButton("/vvod")
 b2 = KeyboardButton("/description")
 b3 = KeyboardButton("/help")
 b4 = KeyboardButton("/settings")
