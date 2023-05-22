@@ -10,7 +10,6 @@ from buttons import kb, HELP_COMMAND
 async def on_startup(self):
     await db_start()
 
-data = []
 storage = MemoryStorage()
 
 # Объект бота
@@ -18,7 +17,7 @@ bot = Bot(API_TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 
-class Id_fio(StatesGroup):
+class Pas(StatesGroup):
     password = State()       # пароль
 
 # до использования этого класса мы еще не доперли.потом. 
@@ -30,12 +29,10 @@ class Attendance(StatesGroup):
 
 @dp.message_handler(commands=["start"])
 async def start_command(message: types.Message):
-    id = str(message.from_user.id)
-    data.append(id) #data [0] == chat_id 
-    check = curator_cheker(id)
+    check = curator_cheker(str(message.from_user.id))
     if await check: #not in database:
-        await message.answer('Добро пожаловать. Для того, чтобы продолжить работу, введите ваш пароль в кавычках.')
-        await Id_fio.password.set()
+        await message.answer('Добро пожаловать. Для того, чтобы продолжить работу, введите ваш пароль.')
+        await Pas.password.set()
     else:
         await bot.send_message(message.from_user.id,
                                text='С возвращением! ',
@@ -43,19 +40,18 @@ async def start_command(message: types.Message):
 
 
 # принимаем пасс
-@dp.message_handler(state = Id_fio.password)
-async def load_password(message: types.Message):
-    pass_data = str(message.text)
-    data.append(pass_data) # data[1] = password
-    pass_check = password_cheker(pass_data)
+@dp.message_handler(state = Pas.password)
+async def load_password(message: types.Message, state: FSMContext):
+    pass_check = password_cheker(str(message.text))
     if await pass_check: #not in database
         await message.answer('Пароль введен неверно, попробуйте снова. Если вы не получили пароль, обратитесь за ним к Гуляеву И.П. ')
-        await Id_fio.password.set()
+        await Pas.password.set()
     else:
+        await edit_profile(message.text, message.from_user.id)
         await bot.send_message(message.from_user.id,
                                text='Вы успешно прошли авторизацию. ',
                                reply_markup=kb)
-    await edit_profile(data[1],data[0])
+
     await state.finish()
 
 @dp.message_handler(commands="help")

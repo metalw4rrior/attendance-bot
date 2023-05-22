@@ -28,7 +28,7 @@ async def curator_cheker(chat_id):
 
 async def password_cheker(password):
     password = str(password)
-    info = cur.execute(f'SELECT password FROM curators WHERE password={password}').fetchone()
+    info = cur.execute(f"SELECT password FROM curators WHERE password='{password}'").fetchone()
     if info is None: 
         return True
 
