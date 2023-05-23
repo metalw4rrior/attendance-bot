@@ -5,8 +5,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from config import API_TOKEN
-from sqlite_func import db_start, curator_cheker, password_cheker,edit_profile
+from sqlite_func import db_start, curator_cheker, password_cheker, edit_profile#, in_base
 from buttons import kb
+from datetime import datetime
 
 async def on_startup(self):
     await db_start()
@@ -53,7 +54,7 @@ async def load_password(message: types.Message, state: FSMContext):
                                reply_markup=kb)
     await state.finish()
 
-reason_data = []
+reason = []
 @dp.message_handler(Text(equals="Ввод статистики"))
 async def vvod_command(message: types.Message):
     await message.answer('Введите количество студентов, отсутствующих по НЕУВАЖИТЕЛЬНОЙ причине')
@@ -61,35 +62,37 @@ async def vvod_command(message: types.Message):
 
 @dp.message_handler(state = Attendance.disrespectful_reason)
 async def load_reason_N(message: types.Message, state: FSMContext)-> None:
-    reason_data.append(int(message.text))     #НЕУВАЖИТЕЛЬНАЯ ПРИЧИНА ИНДЕКС [0]
+    reason.append(int(message.text))     #НЕУВАЖИТЕЛЬНАЯ ПРИЧИНА ИНДЕКС [0]
     await message.answer('Введите количество студентов, отсутствующих по УВАЖИТЕЛЬНОЙ причине')
     await Attendance.valid_reason.set()
 
 @dp.message_handler(state = Attendance.valid_reason)
 async def load_reason_U(message: types.Message, state: FSMContext)-> None:
-    reason_data.append(int(message.text)) #УВАЖИТЕЛЬНАЯ ПРИЧИНА ИНДЕКС [1]
+    reason.append(int(message.text)) #УВАЖИТЕЛЬНАЯ ПРИЧИНА ИНДЕКС [1]
     await message.answer('Введите количество студентов, отсутствующих по БОЛЕЗНИ')
     await Attendance.disease_reason.set()
 
 @dp.message_handler(state = Attendance.disease_reason)
 async def load_reason_B(message: types.Message, state: FSMContext)-> None:
-    reason_data.append(int(message.text)) #БОЛЕЗНЬ  ИНДЕКС [2]
+    reason.append(int(message.text)) #БОЛЕЗНЬ  ИНДЕКС [2]
     await message.answer('Введите количество студентов, ПРИСУТСТВУЮЩИХ на паре')
     await Attendance.present.set()
 
 @dp.message_handler(state = Attendance.present)
 async def load_reason_B(message: types.Message, state: FSMContext)-> None:
-    reason_data.append(int(message.text)) #КТО ЗДЕСЬ ИНДЕКС [3]
-    print(reason_data)
+    reason.append(int(message.text)) #КТО ЗДЕСЬ ИНДЕКС [3]
+    print(reason)
+    date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
+    date_str = date_obj.strftime('%Y-%m-%d')   # Преобразуем объект даты в строку в нужном формате
+    # in_base(reason[3],reason[0], reason[1], reason[2], message.from_user.id, date_str)
     await bot.send_message(message.from_user.id,
-                               text='Вы успешно ввели данные. ',
+                               text='Вы успешно ввели данные.',
                                reply_markup=kb)
     await state.finish()
 
 @dp.message_handler(Text(equals="Описание"))
 async def description_command(message: types.Message):
-    await message.answer(message.from_user.id,
-                         text="Бот предназначен для отправки статистики по посещению")
+    await message.answer(text="Бот предназначен для отправки статистики по посещению")
 
     # Запуск бота
 if __name__ == "__main__":

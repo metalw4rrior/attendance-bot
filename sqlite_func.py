@@ -12,7 +12,6 @@ async def db_start():
 #     # cur.execute(" INSERT INTO curators SET chat_id = (?)",(chat_id))
 #     db.commit()
 
-# Надо или переделать эту функцию, т.к. теперь она добавляет только ФИО или создать новую для добавления групп
 async def edit_profile(password, chat_id):
     password = str(password)
     chat_id = str(chat_id)
@@ -32,7 +31,16 @@ async def password_cheker(password):
     if info is None: 
         return True
 
+''' Проблема только с выбором группы
+async def in_dbase(present, disrespectful_reason, valid_reason, disease_reason, user_id, date_of_report):
+    curator_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())
+    delete = {ord('(') : None, ord(')') : None, ord(',') : None}
+    curator_id = curator_id.translate(delete)
 
+    sql = f"""INSERT INTO attendance_report 
+    (group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
+    VALUES ('{curator_id}', ?, '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})"""
+'''
 ### Перенес в buttons.py :Р ###
 
 # # Функция, которая выводит группы без куратора. Потом можно переделать под выбор группы для ввода посещения
