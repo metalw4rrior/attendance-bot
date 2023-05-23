@@ -31,24 +31,30 @@ async def password_cheker(password):
     if info is None: 
         return True
 
-''' Проблема только с выбором группы
-async def in_dbase(present, disrespectful_reason, valid_reason, disease_reason, user_id, date_of_report):
+# Я думаю, можно назвать это говнокодом
+async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, user_id, date_of_report):
     curator_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())
     delete = {ord('(') : None, ord(')') : None, ord(',') : None}
     curator_id = curator_id.translate(delete)
-
-    sql = f"""INSERT INTO attendance_report 
+    
+    group_id = str(cur.execute(f"SELECT group_id FROM groups WHERE group_name='{group_name}'").fetchone())
+    delete = {ord('(') : None, ord(')') : None, ord(',') : None}
+    group_id = int(group_id.translate(delete))
+    # print(group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, present)
+    cur.execute(f"""INSERT INTO attendance_report 
     (group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
-    VALUES ('{curator_id}', ?, '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})"""
-'''
-### Перенес в buttons.py :Р ###
+    VALUES ({group_id}, {curator_id}, {date_of_report}, {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
+    db.commit()
 
-# # Функция, которая выводит группы без куратора. Потом можно переделать под выбор группы для ввода посещения
-# async def get_unoccupied_groups():
-#     info = str(cur.execute('SELECT group_name FROM groups WHERE curator_id is NULL').fetchall())
-#     # Эта ерунда убирает символы. Иначе это бы было вот так - [('ИБАС21-11',), ('ИСИП22-11',), ...
-#     delete = {ord('[') : None, ord(']') : None, ord('(') : None, ord(')') : None, ord(',') : None, ord("'") : None}
-#     info = info.translate(delete).split()
-#     return info
+# Функция, которая выводит группы
+async def get_unoccupied_groups(user_id):
+    curator_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())
+    delete = {ord('(') : None, ord(')') : None, ord(',') : None}
+    curator_id = curator_id.translate(delete)
+    info = str(cur.execute(f'SELECT group_name FROM groups WHERE curator_id="{curator_id}"').fetchall())
+    delete = {ord('[') : None, ord(']') : None, ord('(') : None, ord(')') : None, ord(',') : None, ord("'") : None}
+    info = info.translate(delete).split()
+    info = [info[i] + ' ' + info[i+1] for i in range(0, len(info), 2)]
+    return info
 
 
