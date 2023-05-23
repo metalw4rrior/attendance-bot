@@ -30,7 +30,6 @@ class Attendance(StatesGroup):
     disrespectful_reason = State()   # Отсутствуют
     valid_reason = State()           # Уважительная
     disease_reason = State()         # Болеют
-    date_1 =State()
 
 @dp.message_handler(commands=["start"])
 async def start_command(message: types.Message):
@@ -95,17 +94,12 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
 
 @dp.message_handler(state = Attendance.present)
 async def load_reason_B(message: types.Message, state: FSMContext)-> None:
-    reason.append(int(message.text)) #ДАТА ИНДЕКС [5]
-    await message.answer('Введите дату в формате дд.мм.гг ')
-    await Attendance.date_1.set()
-
-@dp.message_handler(state = Attendance.date_1)
-async def load_date(message: types.Message, state: FSMContext)-> None:
-    reason.append(str(message.text))
-    date_obj = str(reason[5])   # Получаем текущую дату и преобразуем в объект даты
-    # Преобразуем объект даты в строку в нужном формате
+    reason.append(int(message.text)) #КТО ЗДЕСЬ ИНДЕКС [4]
+    # print(reason)
+    date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
+    date_str = date_obj.strftime('%Y-%m-%d')   # Преобразуем объект даты в строку в нужном формате
     # Тут заносим
-    await in_dbase(reason[0], reason[1], reason[2], reason[3], reason[4], message.from_user.id, date_obj)
+    await in_dbase(reason[0], reason[1], reason[2], reason[3], reason[4], message.from_user.id, date_str)
     await bot.send_message(message.from_user.id,
                                text='Вы успешно ввели данные.',
                                reply_markup=kb)

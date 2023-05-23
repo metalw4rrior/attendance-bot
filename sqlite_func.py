@@ -6,6 +6,11 @@ async def db_start():
     cur.execute("CREATE TABLE IF NOT EXISTS curators(curator_id INTEGER PRIMARY KEY, curator_fio TEXT, chat_id TEXT, password TEXT)")
     db.commit()
 
+# async def curators_values(chat_id):
+#     chat_id = str(chat_id)
+#     cur.execute = ("""INSERT INTO curators(chat_id) VALUES (?) """)
+#     # cur.execute(" INSERT INTO curators SET chat_id = (?)",(chat_id))
+#     db.commit()
 
 async def edit_profile(password, chat_id):
     password = str(password)
@@ -27,7 +32,7 @@ async def password_cheker(password):
         return True
 
 # Я думаю, можно назвать это говнокодом
-async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, user_id, date_1):
+async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, user_id, date_of_report):
     curator_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())
     delete = {ord('(') : None, ord(')') : None, ord(',') : None}
     curator_id = curator_id.translate(delete)
@@ -38,7 +43,7 @@ async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reaso
     # print(group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, present)
     cur.execute(f"""INSERT INTO attendance_report 
     (group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
-    VALUES ({group_id}, {curator_id}, {str(date_1)}, {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
+    VALUES ({group_id}, {curator_id}, '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
     db.commit()
 
 # Функция, которая выводит группы
