@@ -40,10 +40,10 @@ async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reaso
     group_id = str(cur.execute(f"SELECT group_id FROM groups WHERE group_name='{group_name}'").fetchone())
     delete = {ord('(') : None, ord(')') : None, ord(',') : None}
     group_id = int(group_id.translate(delete))
-    # print(group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, present)
+    print(group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, present)
     cur.execute(f"""INSERT INTO attendance_report 
     (group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
-    VALUES ({group_id}, {curator_id}, {date_of_report}, {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
+    VALUES ({group_id}, {curator_id}, '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
     db.commit()
 
 # Функция, которая выводит группы
@@ -54,7 +54,8 @@ async def get_unoccupied_groups(user_id):
     info = str(cur.execute(f'SELECT group_name FROM groups WHERE curator_id="{curator_id}"').fetchall())
     delete = {ord('[') : None, ord(']') : None, ord('(') : None, ord(')') : None, ord(',') : None, ord("'") : None}
     info = info.translate(delete).split()
-    info = [info[i] + ' ' + info[i+1] for i in range(0, len(info), 2)]
+    if len(info)>1:
+        info = [info[i] + ' ' + info[i+1] for i in range(0, len(info), 2)]
     return info
 
 
