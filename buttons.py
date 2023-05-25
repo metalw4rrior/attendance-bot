@@ -8,10 +8,7 @@ cur = db.cursor()
 
 # Клава с кнопками, правда кнопки все широкие
 kb_groups = ReplyKeyboardMarkup(resize_keyboard=True)
-# for i in grp_btns_names:
-#     button = KeyboardButton(i)
-#     kb_groups.add(button)
-
+kb_groups.add(KeyboardButton("Отмена"))
 
 kb = ReplyKeyboardMarkup(resize_keyboard=True)
 b1 = KeyboardButton("Ввод статистики")

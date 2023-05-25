@@ -60,13 +60,24 @@ reason = []
 @dp.message_handler(Text(equals="Ввод статистики"))
 async def load_statistics(message: types.Message):
     groups = await get_unoccupied_groups(str(message.from_user.id))
-    # print(groups)
+    kb_groups = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb_groups.add(KeyboardButton("Отмена"))
     for i in groups:
         button = KeyboardButton(i)
-        kb_groups.add(button)
+        kb_groups.insert(button)
     await message.answer(text='Ввыберите группу',
                          reply_markup=kb_groups)
     await Attendance.group.set()
+
+# ОТМЕНА
+@dp.message_handler(Text(equals='Отмена'), state='*')
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+    reason.clear()
+    await message.reply('Ввод отменен', reply_markup=kb)
 
 @dp.message_handler(state = Attendance.group)
 async def load_group(message: types.Message, state: FSMContext)-> None:
@@ -76,7 +87,7 @@ async def load_group(message: types.Message, state: FSMContext)-> None:
 
 @dp.message_handler(state = Attendance.disrespectful_reason)
 async def load_reason_N(message: types.Message, state: FSMContext)-> None:
-    reason.append(str(message.text))     #НЕУВАЖИТЕЛЬНАЯ ПРИЧИНА ИНДЕКС [1]
+    reason.append(int(message.text))     #НЕУВАЖИТЕЛЬНАЯ ПРИЧИНА ИНДЕКС [1]
     await message.answer('Введите количество студентов, отсутствующих по УВАЖИТЕЛЬНОЙ причине')
     await Attendance.valid_reason.set()
 
@@ -95,11 +106,11 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
 @dp.message_handler(state = Attendance.present)
 async def load_reason_B(message: types.Message, state: FSMContext)-> None:
     reason.append(int(message.text)) #КТО ЗДЕСЬ ИНДЕКС [4]
-    # print(reason)
     date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
     date_str = str(date_obj.strftime('%Y-%m-%d'))   # Преобразуем объект даты в строку в нужном формате
     # Тут заносим
     await in_dbase(reason[0], reason[1], reason[2], reason[3], reason[4], message.from_user.id, date_str)
+    reason.clear()
     await bot.send_message(message.from_user.id,
                                text='Вы успешно ввели данные.',
                                reply_markup=kb)
@@ -108,6 +119,12 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
 @dp.message_handler(Text(equals="Описание"))
 async def description_command(message: types.Message):
     await message.answer(text="Бот предназначен для отправки статистики по посещению")
+
+# @dp.message_handler(lambda message: message.text == 'Отмена')
+# async def description_command(message: types.Message, state: FSMContext):
+#     await state.finish()
+#     await message.answer(text="Действие отменено",
+#                          reply_markup=kb)
 
     # Запуск бота
 if __name__ == "__main__":

@@ -33,17 +33,13 @@ async def password_cheker(password):
 
 # Я думаю, можно назвать это говнокодом
 async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, user_id, date_of_report):
-    curator_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None}
-    curator_id = curator_id.translate(delete)
-    
-    group_id = str(cur.execute(f"SELECT group_id FROM groups WHERE group_name='{group_name}'").fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None}
-    group_id = int(group_id.translate(delete))
-    print(group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, present)
+    curator_fio = str(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())
+    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
+    curator_fio = curator_fio.translate(delete)
+    # print(group_name, type(curator_fio), date_of_report, valid_reason, disrespectful_reason, disease_reason, present)
     cur.execute(f"""INSERT INTO attendance_report 
-    (group_id, curator_id, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
-    VALUES ({group_id}, {curator_id}, '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
+    (group_name, curator_fio, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
+    VALUES ("{group_name}", "{curator_fio}", '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
     db.commit()
 
 # Функция, которая выводит группы
