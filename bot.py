@@ -65,7 +65,7 @@ async def load_statistics(message: types.Message):
     for i in groups:
         button = KeyboardButton(i)
         kb_groups.insert(button)
-    await message.answer(text='Ввыберите группу',
+    await message.answer(text='Выберите группу',
                          reply_markup=kb_groups)
     await Attendance.group.set()
 

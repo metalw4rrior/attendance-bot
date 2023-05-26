@@ -6,11 +6,6 @@ async def db_start():
     cur.execute("CREATE TABLE IF NOT EXISTS curators(curator_id INTEGER PRIMARY KEY, curator_fio TEXT, chat_id TEXT, password TEXT)")
     db.commit()
 
-# async def curators_values(chat_id):
-#     chat_id = str(chat_id)
-#     cur.execute = ("""INSERT INTO curators(chat_id) VALUES (?) """)
-#     # cur.execute(" INSERT INTO curators SET chat_id = (?)",(chat_id))
-#     db.commit()
 
 async def edit_profile(password, chat_id):
     password = str(password)

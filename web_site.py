@@ -1,23 +1,10 @@
 import sqlite3
 from flask import Flask, render_template
 import sqlite3
-
+from datetime import datetime
 app = Flask(__name__)
 def conn_db():
     conn = sqlite3.connect('database_project.db')
-    c = conn.cursor()
-    c.execute("""CREATE TABLE IF NOT EXISTS "attendance_report" (
-	"note_id"	integer,
-	"group_id"	INTEGER,
-	"curator_id"	TEXT,
-	"date_of_report"	date,
-	"valid_reason"	integer,
-	"disrespectful_reason"	INTEGER,
-	"disease_reason"	INTEGER,
-	"who_is_present"	INTEGER,
-	FOREIGN KEY("group_id") REFERENCES "groups"("group_id"),
-	FOREIGN KEY("curator_id") REFERENCES "curators"("curator_id"),
-	PRIMARY KEY("note_id"))""")
     if conn:
         print ("Connected Successfully")
     else:
@@ -28,9 +15,11 @@ def conn_db():
 # Страница для отображения списка посещаемости
 @app.route('/')
 def index():
+    date_obj = datetime.now().date() 
+    date_str = str(date_obj.strftime('%Y-%m-%d'))
     conn = sqlite3.connect('database_project.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM attendance_report")
+    c.execute("SELECT * FROM attendance_report where date_of_report =(?)", (date_str,))
     attendance_report = c.fetchall()
     conn.close()
     return render_template('index.html', attendance_report=attendance_report)
