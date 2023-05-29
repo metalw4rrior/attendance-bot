@@ -1,0 +1,12 @@
+[Unit]
+Description=Демон автозапуска и перезагрузки сайта
+
+[Service]
+User=admin
+WorkingDirectory=/home/user/attendance_bot/
+ExecStart=/usr/bin/python3 /home/user/attendance_bot/web_site.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

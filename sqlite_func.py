@@ -27,6 +27,7 @@ async def password_cheker(password):
         return True
 
 # Я думаю, можно назвать это говнокодом
+# Ввод статистики в бд
 async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, user_id, date_of_report):
     curator_fio = str(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())
     delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
@@ -35,6 +36,18 @@ async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reaso
     (group_name, curator_fio, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
     VALUES ("{group_name}", "{curator_fio}", '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
     db.commit()
+
+# Эта гавнина работает PogChamp :V
+# Высчитывает присутствующих
+async def all_that_present(disrespectful_reason, valid_reason, disease_reason, user_id):
+    curator_db_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())
+    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
+    curator_db_id = curator_db_id.translate(delete)
+    how_much = str(cur.execute(f"SELECT how_much FROM groups WHERE curator_id='{curator_db_id}'").fetchone())
+    how_much = int(how_much.translate(delete))
+    present = how_much - disrespectful_reason - valid_reason - disease_reason
+    if present >= 0:
+        return present
 
 # Функция, которая выводит группы
 async def get_unoccupied_groups(user_id):

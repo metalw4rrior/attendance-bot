@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sqlite3 as sl
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -6,7 +7,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove 
 from config import API_TOKEN
-from sqlite_func import db_start, curator_cheker, password_cheker, edit_profile, get_unoccupied_groups, in_dbase
+from sqlite_func import db_start, curator_cheker, password_cheker, edit_profile, get_unoccupied_groups, in_dbase, all_that_present
 from buttons import kb, kb_groups
 from datetime import datetime
 
@@ -26,7 +27,6 @@ class Pas(StatesGroup):
 # до использования этого класса мы еще не доперли.потом. 
 class Attendance(StatesGroup):
     group = State()
-    present = State()                # Присутствуют    P.C. строку с присутствующими менять я не стала, ибо в базе строка who_is_present.
     disrespectful_reason = State()   # Отсутствуют
     valid_reason = State()           # Уважительная
     disease_reason = State()         # Болеют
@@ -112,26 +112,21 @@ async def load_reason_U(message: types.Message, state: FSMContext)-> None:
 async def load_reason_B(message: types.Message, state: FSMContext)-> None:
     if message.text.isdigit():
         reason.append(int(message.text)) #БОЛЕЗНЬ  ИНДЕКС [3]
-        await message.answer('Введите количество студентов, ПРИСУТСТВУЮЩИХ на паре')
-        await Attendance.present.set()
-    else:
-        await state.finish()
-        reason.clear()
-        await message.reply('Операция отменена. Ошибка в вводимых данных', reply_markup=kb)
-
-@dp.message_handler(state = Attendance.present)
-async def load_reason_B(message: types.Message, state: FSMContext)-> None:
-    if message.text.isdigit():
-        reason.append(int(message.text)) #КТО ЗДЕСЬ ИНДЕКС [4]
-        date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
-        date_str = str(date_obj.strftime('%Y-%m-%d'))   # Преобразуем объект даты в строку в нужном формате
-        # Тут заносим
-        await in_dbase(reason[0], reason[1], reason[2], reason[3], reason[4], message.from_user.id, date_str)
-        reason.clear()
-        await bot.send_message(message.from_user.id,
-                                   text='Вы успешно ввели данные.',
-                                   reply_markup=kb)
-        await state.finish()
+        present = await all_that_present(reason[1], reason[2], reason[3], message.from_user.id)
+        if present or present == 0:
+            date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
+            date_str = str(date_obj.strftime('%Y-%m-%d'))   # Преобразуем объект даты в строку в нужном формате
+            # Тут заносим
+            await in_dbase(reason[0], reason[1], reason[2], reason[3], present, message.from_user.id, date_str)
+            reason.clear()
+            await bot.send_message(message.from_user.id,
+                                       text='Вы успешно ввели данные.',
+                                       reply_markup=kb)
+            await state.finish()
+        else:
+            await state.finish()
+            reason.clear()
+            await message.reply('Операция отменена. Превышено кол-во студентов', reply_markup=kb)
     else:
         await state.finish()
         reason.clear()
