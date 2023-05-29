@@ -31,7 +31,6 @@ async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reaso
     curator_fio = str(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())
     delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
     curator_fio = curator_fio.translate(delete)
-    # print(group_name, type(curator_fio), date_of_report, valid_reason, disrespectful_reason, disease_reason, present)
     cur.execute(f"""INSERT INTO attendance_report 
     (group_name, curator_fio, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
     VALUES ("{group_name}", "{curator_fio}", '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")

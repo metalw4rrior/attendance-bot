@@ -1,26 +1,79 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Отчет по посещаемости</title>
-</head>
-<style>
-    body {
-      background-color: #ffffff; 
+    <style>
+      body {
+          background-color: #f5f5f5;
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 20px;
+      }
+      h1 {
+        color: #333333;
+        text-align: center;
+        margin-bottom: 20px;
     }
-  </style>
+
+    p {
+        color: #333333;
+        text-align: left;
+        margin-bottom: 20px;
+    }
+
+    form {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    input[type="date"] {
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    input[type="submit"] {
+        padding: 10px 20px;
+        border-radius: 5px;
+        background-color: #4CAF50;
+        color: #ffffff;
+        border: none;
+        cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+        background-color: #45a049;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid #dddddd;
+        padding: 10px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f9f9f9;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+</style>
 </head>
 <body>
-    <h1>Отчет по посещаемости КЦПТ за сегодняшний день</h1>
-    <style>
-        table {
-          border-collapse: collapse;
-        }
-        
-        th, td {
-          border: 1px solid black;
-          padding: 8px;
-        }
-      </style>
+    <h1>Отчет по посещаемости КЦПТ</h1>
+    <form action="/process_date" method="post">
+      <input type="date" name="date" required>
+      <input type="submit" value="Выбрать дату">
+  </form>
+  {% if message %}
+      <div class="message">{{ message }}</div>
+  {% endif %}
     <table>
         <tr>
             <th>ID</th>
@@ -45,5 +98,7 @@
         </tr>
         {% endfor %}
     </table>
+    <p>*Если вы выбрали дату и не увидели ничего в таблице,
+       то это значит, что значения не были внесены кураторами.</p>
 </body>
 </html>
