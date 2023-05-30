@@ -63,7 +63,7 @@ async def get_unoccupied_groups(user_id):
 
 # Проверка записей на текущий день
 async def record_checker(date_of_report, group_name):
-    info = cur.execute(f"SELECT group_name FROM attendance_report WHERE date_of_report='{date_of_report}'").fetchone()
+    info = cur.execute(f"SELECT * FROM attendance_report WHERE date_of_report='{date_of_report}' and group_name='{group_name}'").fetchone()
     if info is None:
         print(info)
         return True
