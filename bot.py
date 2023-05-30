@@ -8,7 +8,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove 
 from config import API_TOKEN
 from sqlite_func import db_start, curator_cheker, password_cheker, edit_profile, get_unoccupied_groups, in_dbase, all_that_present
-from buttons import kb, kb_groups
+from buttons import kb, kb_groups, start_btn
 from datetime import datetime
 
 async def on_startup(self):
@@ -65,6 +65,7 @@ async def load_statistics(message: types.Message):
     for i in groups:
         button = KeyboardButton(i)
         kb_groups.insert(button)
+    kb_groups.add(start_btn)
     await message.answer(text='Выберите группу',
                          reply_markup=kb_groups)
     await Attendance.group.set()
@@ -81,9 +82,16 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state = Attendance.group)
 async def load_group(message: types.Message, state: FSMContext)-> None:
-    reason.append(message.text)     #ИМЯ ГРУППЫ [0]
-    await message.answer('Введите количество студентов, отсутствующих по НЕУВАЖИТЕЛЬНОЙ причине')
-    await Attendance.disrespectful_reason.set()
+    groups = await get_unoccupied_groups(str(message.from_user.id))
+    if message.text in groups:
+        reason.append(message.text)     #ИМЯ ГРУППЫ [0]
+        await message.answer('Введите количество студентов, отсутствующих по НЕУВАЖИТЕЛЬНОЙ причине')
+        await Attendance.disrespectful_reason.set()
+    else:
+        await state.finish()
+        reason.clear()
+        await message.reply('Операция отменена. Ошибка в вводимых данных', reply_markup=kb)
+
 
 @dp.message_handler(state = Attendance.disrespectful_reason)
 async def load_reason_N(message: types.Message, state: FSMContext)-> None:

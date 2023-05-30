@@ -6,12 +6,15 @@ db = sl.connect('database_project.db')
 cur = db.cursor()
 
 
+start_btn = KeyboardButton("/start")
+
 # Клава с кнопками, правда кнопки все широкие
 kb_groups = ReplyKeyboardMarkup(resize_keyboard=True)
-kb_groups.add(KeyboardButton("Отмена"))
+cancel_btn = KeyboardButton("Отмена")
+kb_groups.add(cancel_btn)
 
 kb = ReplyKeyboardMarkup(resize_keyboard=True)
 b1 = KeyboardButton("Ввод статистики")
 b2 = KeyboardButton("Описание")
-kb.add(b1,b2)
+kb.add(b1,b2).add(start_btn)
 

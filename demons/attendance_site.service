@@ -2,9 +2,9 @@
 Description=Демон автозапуска и перезагрузки сайта
 
 [Service]
-User=admin
-WorkingDirectory=/home/user/attendance_bot/
-ExecStart=/usr/bin/python3 /home/user/attendance_bot/web_site.py
+User=root
+WorkingDirectory=/root/attendance-bot/
+ExecStart=/usr/bin/python3 /root/attendance-bot/web_site.py
 Restart=always
 RestartSec=10
 
