@@ -1,4 +1,5 @@
 import sqlite3 as sl
+import datetime
 async def db_start():
     global db,cur
     db = sl.connect('database_project.db')
@@ -67,3 +68,29 @@ async def record_checker(date_of_report, group_name):
     if info is None:
         print(info)
         return True
+#это надо доработать
+async def daily_report_on():
+    conn = sl.connect('database_project.db')
+    cursor = conn.cursor()
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    new_table_name = f'daily_report_{today}'
+    cursor.execute(f"""CREATE TABLE {new_table_name} 
+  (report_id integer primary key,
+  group_name text references attendance_report(group_name),
+  curator_fio text references attendance_report(curator_fio),
+  how_much integer references groups(how_much),
+  who_is_present integer references attendance_report(who_is_present),
+  valid_reason text references attendance_report(valid_reason),
+  disrespectful_reason text references attendance_report(disrespectful_reason),
+  disease_reason text references attendance_report(disease_reason),
+  attendance_fact text,
+  att_fact_d_v text
+));""")
+    for i in range(1, 7): # переименуем таблицы за 6 предыдущих дней
+        old_table_date = (datetime.datetime.now() - datetime.timedelta(days=i)).strftime('%Y-%m-%d')
+        old_table_name = f"daily_report_{old_table_date}"
+        new_old_table_name = f"daily_report_{old_table_date}_backup"
+        cursor.execute(f"ALTER TABLE {old_table_name} RENAME TO {new_old_table_name}")
+
+    conn.commit()
+    conn.close()
