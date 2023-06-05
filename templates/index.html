@@ -63,6 +63,10 @@
     tr:nth-child(even) {
         background-color: #f2f2f2;
     }
+    tr.none-values {
+        background-color: #e7ebad; /* Желтый цвет */
+        color: #615f5f; /* Черный цвет текста */
+    }
 </style>
 </head>
 <body>
@@ -87,8 +91,8 @@
             <th>% посещаемости</th>
             <th>% посещаемости c учетом У и Б</th>
         </tr>
-        {% for note in attendance_report %}
-        <tr>
+    {% for note in attendance_report %}
+        <tr{% if note[4] is none or note[5] is none or note[6] is none %} class="none-values"{% endif %}>
             <td>{{ note[0] }}</td>
             <td>{{ note[1] }}</td>
             <td>{{ note[2] }}</td>
@@ -100,7 +104,7 @@
             <td>{{ note[8] }}</td>
             <td>{{ note[9] }}</td>
         </tr>
-        {% endfor %}
+    {% endfor %}
     </table>
     <p>*Если вы выбрали дату и не увидели ничего в таблице,
        то это значит, что значения не были внесены кураторами.</p>
