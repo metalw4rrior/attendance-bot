@@ -21,8 +21,8 @@ def check(date_of_report):
 def new_day(date_of_report):
     if check(date_of_report): # если записей с датой нет, то добавит незаполненные группы и фио
         cur.execute(f"""INSERT INTO attendance_report
-        (group_name, curator_fio, date_of_report)
-        SELECT group_name, curator_fio, '{date_of_report}' FROM groups JOIN curators ON groups.curator_id = curators.curator_id""")
+        (group_name, curator_fio, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present, itog_percent, itog_u_b)
+        SELECT group_name, curator_fio, '{date_of_report}', "-", "-", "-", "-", "-", "-" FROM groups JOIN curators ON groups.curator_id = curators.curator_id""")
         db.commit()
 
 new_day(date_of_report)

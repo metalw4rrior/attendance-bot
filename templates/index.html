@@ -92,7 +92,7 @@
             <th>% посещаемости c учетом У и Б</th>
         </tr>
     {% for note in attendance_report %}
-        <tr{% if note[4] is none or note[5] is none or note[6] is none %} class="none-values"{% endif %}>
+        <tr{% if note[4] == "-" or note[5] == "-" or note[6] == "-" %} class="none-values"{% endif %}>
             <td>{{ note[0] }}</td>
             <td>{{ note[1] }}</td>
             <td>{{ note[2] }}</td>
