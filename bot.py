@@ -10,6 +10,9 @@ from config import API_TOKEN
 from sqlite_func import db_start, curator_cheker, password_cheker, edit_profile, get_unoccupied_groups, in_dbase, all_that_present, record_checker,itog_percent,itog_percent_u_b
 from buttons import kb, kb_groups, start_btn
 from datetime import datetime
+import time
+import schedule
+import asyncio
 
 async def on_startup(self):
     await db_start()
@@ -24,12 +27,33 @@ dp = Dispatcher(bot, storage=storage)
 class Pas(StatesGroup):
     password = State()       # пароль
 
-# до использования этого класса мы еще не доперли.потом. 
 class Attendance(StatesGroup):
     group = State()
     disrespectful_reason = State()   # Отсутствуют
     valid_reason = State()           # Уважительная
     disease_reason = State()         # Болеют
+
+#можно спихнуть это в sqlite_func 
+def get_users_from_database():
+    conn = sl.connect('database_project.db')
+    cursor = conn.cursor()
+    users = cursor.execute("SELECT chat_id FROM curators where chat_id not like 'None'").fetchall()
+    conn.close()
+    chat_ids = [int(id[0]) for id in users if id[0] is not None and id[0].isdigit()]
+    return chat_ids
+
+async def send_notification(user_id):
+    await bot.send_message(user_id, "Введите посещаемость, если вы еще этого не сделали ")
+
+async def schedule_notifications():
+    USERS = get_users_from_database()
+    while True:
+        current_time = datetime.now().strftime("%H:%M")
+        if current_time == "12:00" or current_time == "15:00":
+            for user_id in USERS:
+                await send_notification(user_id)
+        await asyncio.sleep(60)  # Проверяем каждую минуту
+
 
 @dp.message_handler(commands=["start"])
 async def start_command(message: types.Message):
@@ -153,7 +177,9 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
 @dp.message_handler(Text(equals="Описание"))
 async def description_command(message: types.Message):
     await message.answer(text="Бот предназначен для отправки статистики по посещению")
-
+async def main():
+    await schedule_notifications()
     # Запуск бота
 if __name__ == "__main__":
+    asyncio.run(main())
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
