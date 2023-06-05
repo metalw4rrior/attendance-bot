@@ -7,7 +7,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove 
 from config import API_TOKEN
-from sqlite_func import db_start, curator_cheker, password_cheker, edit_profile, get_unoccupied_groups, in_dbase, all_that_present, record_checker
+from sqlite_func import db_start, curator_cheker, password_cheker, edit_profile, get_unoccupied_groups, in_dbase, all_that_present, record_checker,itog_percent,itog_percent_u_b
 from buttons import kb, kb_groups, start_btn
 from datetime import datetime
 
@@ -126,11 +126,13 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
     if message.text.isdigit():
         reason.append(int(message.text)) #БОЛЕЗНЬ  ИНДЕКС [3]
         present = await all_that_present(reason[1], reason[2], reason[3], message.from_user.id)
+        itog_percent1 = await itog_percent(reason[1], reason[2], reason[3], message.from_user.id)
+        itog_percent2 = await itog_percent_u_b(reason[1], message.from_user.id)
         if present or present == 0:
             date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
             date_str = str(date_obj.strftime('%Y-%m-%d'))   # Преобразуем объект даты в строку в нужном формате
             # Тут заносим
-            await in_dbase(reason[0], reason[1], reason[2], reason[3], present, message.from_user.id, date_str)
+            await in_dbase(reason[0], reason[1], reason[2], reason[3], present, message.from_user.id, date_str,itog_percent1,itog_percent2)
             reason.clear()
             await bot.send_message(message.from_user.id,
                                        text='Вы успешно ввели данные.',

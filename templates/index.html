@@ -84,6 +84,8 @@
             <th>Неуважительная</th>
             <th>Болезнь</th>
             <th>Присутствуют</th>
+            <th>% посещаемости</th>
+            <th>% посещаемости c учетом У и Б</th>
         </tr>
         {% for note in attendance_report %}
         <tr>
@@ -95,6 +97,8 @@
             <td>{{ note[5] }}</td>
             <td>{{ note[6] }}</td>
             <td>{{ note[7] }}</td>
+            <td>{{ note[8] }}</td>
+            <td>{{ note[9] }}</td>
         </tr>
         {% endfor %}
     </table>
