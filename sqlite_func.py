@@ -29,15 +29,18 @@ async def password_cheker(password):
 
 # Я думаю, можно назвать это говнокодом
 # Ввод статистики в бд
-async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, user_id, date_of_report,itog_percent1,itog_percent2):
-    curator_fio = str(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
-    curator_fio = curator_fio.translate(delete)
-    cur.execute(f"""INSERT INTO attendance_report
-    (group_name, curator_fio, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present, itog_percent,itog_u_b)
-    VALUES ("{group_name}", "{curator_fio}", '{date_of_report}', {valid_reason},
-            {disrespectful_reason}, {disease_reason}, {present},'{itog_percent1}','{itog_percent2}')""")
+async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, date_of_report, itog_percent1, itog_percent2):
+    cur.execute(f"""UPDATE attendance_report SET
+    valid_reason = {valid_reason},
+    disrespectful_reason = {disrespectful_reason},
+    disease_reason = {disease_reason},
+    who_is_present = {present},
+    itog_percent = "{itog_percent1}",
+    itog_u_b = "{itog_percent2}"
+
+    WHERE date_of_report = '{date_of_report}' and group_name = '{group_name}'""")
     db.commit()
+
 
 # Эта гавнина работает PogChamp :V
 # Высчитывает присутствующих

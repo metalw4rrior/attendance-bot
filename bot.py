@@ -87,7 +87,10 @@ async def load_group(message: types.Message, state: FSMContext)-> None:
         date_obj = datetime.now().date()
         date_str = str(date_obj.strftime('%Y-%m-%d'))
         if not await record_checker(date_str, message.text):
-            print("Заглушка") # Тут надо функцию update реализовывать
+            # print("Заглушка") # Тут надо функцию update реализовывать
+            reason.append(message.text)     #ИМЯ ГРУППЫ [0]
+            await message.answer('Введите количество студентов, отсутствующих по НЕУВАЖИТЕЛЬНОЙ причине')
+            await Attendance.disrespectful_reason.set()
         else:
             reason.append(message.text)     #ИМЯ ГРУППЫ [0]
             await message.answer('Введите количество студентов, отсутствующих по НЕУВАЖИТЕЛЬНОЙ причине')
@@ -132,7 +135,7 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
             date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
             date_str = str(date_obj.strftime('%Y-%m-%d'))   # Преобразуем объект даты в строку в нужном формате
             # Тут заносим
-            await in_dbase(reason[0], reason[1], reason[2], reason[3], present, message.from_user.id, date_str,itog_percent1,itog_percent2)
+            await in_dbase(reason[0], reason[1], reason[2], reason[3], present, date_str,itog_percent1,itog_percent2)
             reason.clear()
             await bot.send_message(message.from_user.id,
                                        text='Вы успешно ввели данные.',
