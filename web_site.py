@@ -19,8 +19,8 @@ def index():
 @app.route('/process_date', methods=['POST'])
 def process_date():
     date_str = request.form['date']
-    date_obj = datetime.strptime(date_str, '%Y-%m-%d') 
-    formatted_date = date_obj.strftime('%Y-%m-%d')  
+    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+    formatted_date = date_obj.strftime('%Y-%m-%d')
     conn = sqlite3.connect('database_project.db')
     c = conn.cursor()
     c.execute("SELECT * FROM attendance_report WHERE date_of_report = ?", (formatted_date,))

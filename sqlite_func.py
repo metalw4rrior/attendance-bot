@@ -29,13 +29,14 @@ async def password_cheker(password):
 
 # Я думаю, можно назвать это говнокодом
 # Ввод статистики в бд
-async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, user_id, date_of_report):
+async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, user_id, date_of_report,itog_percent1,itog_percent2):
     curator_fio = str(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())
     delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
     curator_fio = curator_fio.translate(delete)
     cur.execute(f"""INSERT INTO attendance_report
-    (group_name, curator_fio, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present)
-    VALUES ("{group_name}", "{curator_fio}", '{date_of_report}', {valid_reason}, {disrespectful_reason}, {disease_reason}, {present})""")
+    (group_name, curator_fio, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present, itog_percent,itog_u_b)
+    VALUES ("{group_name}", "{curator_fio}", '{date_of_report}', {valid_reason},
+            {disrespectful_reason}, {disease_reason}, {present},'{itog_percent1}','{itog_percent2}')""")
     db.commit()
 
 # Эта гавнина работает PogChamp :V
@@ -49,6 +50,35 @@ async def all_that_present(disrespectful_reason, valid_reason, disease_reason, u
     present = how_much - disrespectful_reason - valid_reason - disease_reason
     if present >= 0:
         return present
+
+# Высчитывает проценты посещаемости без у и б
+async def itog_percent(disrespectful_reason, valid_reason, disease_reason, user_id):
+    conn = sl.connect('database_project.db')
+    cur = conn.cursor()
+    curator_db_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id=?", (user_id,)).fetchone())
+    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
+    curator_db_id = curator_db_id.translate(delete)
+    how_much = cur.execute(f"SELECT how_much FROM groups WHERE curator_id=?", (curator_db_id,)).fetchone()
+    how_much = int(str(how_much).translate(delete))
+    itog_percent1 = ((how_much - disrespectful_reason - valid_reason - disease_reason) / how_much) * 100
+    itog_percent1 = str(itog_percent1)+'%'
+    conn.close()
+    return itog_percent1
+
+# Высчитывает проценты посещаемости с у и б
+async def itog_percent_u_b(disrespectful_reason, user_id):
+    conn = sl.connect('database_project.db')
+    cur = conn.cursor()
+    curator_db_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id=?", (user_id,)).fetchone())
+    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
+    curator_db_id = curator_db_id.translate(delete)
+    how_much = cur.execute(f"SELECT how_much FROM groups WHERE curator_id=?", (curator_db_id,)).fetchone()
+    how_much = int(str(how_much).translate(delete))
+    itog_percent1 = ((how_much - disrespectful_reason) / how_much) * 100
+    itog_percent_u_b = str(itog_percent1)+'%'
+
+    conn.close()
+    return itog_percent_u_b
 
 # Функция, которая выводит группы
 async def get_unoccupied_groups(user_id):
@@ -72,30 +102,3 @@ async def record_checker(date_of_report, group_name):
 
 
 
-
-##это надо доработать
-#async def daily_report_on():
-#    conn = sl.connect('database_project.db')
-#    cursor = conn.cursor()
-#    today = datetime.datetime.now().strftime('%Y-%m-%d')
-#    new_table_name = f'daily_report_{today}'
-#    cursor.execute(f"""CREATE TABLE {new_table_name}
-#  (report_id integer primary key,
-#  group_name text references attendance_report(group_name),
-#  curator_fio text references attendance_report(curator_fio),
-#  how_much integer references groups(how_much),
-#  who_is_present integer references attendance_report(who_is_present),
-#  valid_reason text references attendance_report(valid_reason),
-#  disrespectful_reason text references attendance_report(disrespectful_reason),
-#  disease_reason text references attendance_report(disease_reason),
-#  attendance_fact text,
-#  att_fact_d_v text
-#));""")
-#    for i in range(1, 7): # переименуем таблицы за 6 предыдущих дней
-#        old_table_date = (datetime.datetime.now() - datetime.timedelta(days=i)).strftime('%Y-%m-%d')
-#        old_table_name = f"daily_report_{old_table_date}"
-#        new_old_table_name = f"daily_report_{old_table_date}_backup"
-#        cursor.execute(f"ALTER TABLE {old_table_name} RENAME TO {new_old_table_name}")
-
-#    conn.commit()
-#    conn.close()
