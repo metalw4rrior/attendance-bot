@@ -1,5 +1,8 @@
 import sqlite3 as sl
-import datetime
+from datetime import datetime
+import schedule
+import asyncio
+
 async def db_start():
     global db,cur
     db = sl.connect('database_project.db')
@@ -97,11 +100,50 @@ async def get_unoccupied_groups(user_id):
 
 # Проверка записей на текущий день
 async def record_checker(date_of_report, group_name):
-    info = cur.execute(f"SELECT * FROM attendance_report WHERE date_of_report='{date_of_report}' and group_name='{group_name}'").fetchone()
-    if info is None:
-        print(info)
+    info = cur.execute(f"""SELECT valid_reason FROM attendance_report
+                       WHERE date_of_report='{date_of_report}' and group_name='{group_name}'""").fetchone()
+    if info[0] == "-":
         return True
 
+# Проверка на наличие даты
+def check():
+    date_of_report = datetime.now().strftime('%Y-%m-%d')
+    info = cur.execute(f"select * from attendance_report where date_of_report='{date_of_report}'").fetchone()
+    if info is None:
+        return True
+
+async def new_day():
+    if check(): # если записей с датой нет, то добавит незаполненные группы и фио
+        date_of_report = datetime.now().strftime('%Y-%m-%d')
+        cur.execute(f"""INSERT INTO attendance_report
+        (group_name, curator_fio, date_of_report, valid_reason, disrespectful_reason, disease_reason, who_is_present, itog_percent, itog_u_b)
+        SELECT group_name, curator_fio, '{date_of_report}', "-", "-", "-", "-", "-", "-" FROM groups JOIN curators ON groups.curator_id = curators.curator_id""")
+        db.commit()
+
+# Уведомления и новый день
+def get_users_from_database():
+    conn = sl.connect('database_project.db')
+    cursor = conn.cursor()
+    users = cursor.execute("SELECT chat_id FROM curators where chat_id not like 'None'").fetchall()
+    conn.close()
+    chat_ids = [int(id[0]) for id in users if id[0] is not None and id[0].isdigit()]
+    return chat_ids
+
+async def send_notification(user_id, bot):
+    await bot.send_message(user_id, "Введите посещаемость, если вы еще этого не сделали ")
+
+async def schedule_bot(bot):
+    USERS = get_users_from_database()
+    while True:
+        current_time = datetime.now().strftime("%H:%M")
+        # Уведомление
+        if current_time == "12:00" or current_time == "15:00":
+            for user_id in USERS:
+                await send_notification(user_id, bot)
+        # Новый день
+        if current_time == "00:01" or current_time == "01:00": # час ночи на всякий случай
+            await new_day()
+        await asyncio.sleep(60)  # Проверяем каждую минуту
 
 
 
