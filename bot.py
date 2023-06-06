@@ -47,6 +47,11 @@ async def start_command(message: types.Message):
                                text='С возвращением! ',
                                reply_markup=kb)
 
+@dp.message_handler(commands=["restart"])
+async def start_command(message: types.Message):
+    await bot.send_message(message.from_user.id,
+                           text='Бот перезагружен',
+                           reply_markup=kb)
 
 # принимаем пасс
 @dp.message_handler(state = Pas.password)
@@ -155,9 +160,16 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
         reason.clear()
         await message.reply('Операция отменена. Ошибка в вводимых данных', reply_markup=kb)
 
+
 @dp.message_handler(Text(equals="Описание"))
 async def description_command(message: types.Message):
-    await message.answer(text="Бот предназначен для отправки статистики по посещению")
+    await message.answer(text="""Бот предназначен для отправки статистики по посещению.\n
+Для ввода статистики, нажмите на кнопку "Ввод статистики".\n
+Если вы хотите обновить статистику, нажмите на кнопку
+"Ввод статистики". Новые данные перезапишут старые!\n
+Если вы хотите отменить операцию, нажмите "Отмена".\n
+Если бот не реагирует на команды, нажмите на кнопку
+"/restart" или введите "/restart" с клавиатуры.""")
 
 # Запуск бота
 if __name__ == "__main__":
