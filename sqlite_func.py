@@ -98,12 +98,14 @@ async def get_unoccupied_groups(user_id):
         info = [info[i] + ' ' + info[i+1] for i in range(0, len(info), 2)]
     return info
 
+# Достает фио куратора по chat_id
 async def get_curator_fio(user_id):
     curator_fio = str(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())
     delete = {ord('(') : None, ord(')') : None, ord(',') : None}
     curator_fio = curator_fio.translate(delete)
     return curator_fio
 
+# Вытаскивает группу и введенные данные в список
 async def get_stats(user_id, date_of_report):
     fio = await get_curator_fio(user_id)
     stats = list(cur.execute(f"""SELECT group_name, disrespectful_reason, valid_reason, disease_reason
@@ -113,7 +115,7 @@ async def get_stats(user_id, date_of_report):
     stats = [list(i) for i in stats]
     return stats
 
-
+# Функция спецом для кнопки
 async def check_stats(user_id, date_of_report):
     stats = await get_stats(user_id, date_of_report)
     answer = ""
@@ -121,9 +123,15 @@ async def check_stats(user_id, date_of_report):
         if i[1] == "-" or i[2] == "-" or i[3] == "-":
             answer += f'Группа "{i[0]}" не заполнена\n\n'
         else:
-            answer += f'В группе "{i[0]}" отсутствуют: по болезне {i[1]}, по неуважительной {i[2]}, по уважительной {i[3]}\n\n'
+            answer += f'В группе "{i[0]}" отсутствуют: по болезни {i[1]}, по неуважительной {i[2]}, по уважительной {i[3]}\n\n'
     return answer
 
+# По сути, это таже функция, что и check_stats, но для уведомлений
+async def check_stats_notify(user_id, date_of_report):
+    stats = await get_stats(user_id, date_of_report)
+    for i in stats:
+        if i[1] == "-" or i[2] == "-" or i[3] == "-":
+            return True
 
 # Проверка записей на текущий день
 async def record_checker(date_of_report, group_name):
@@ -157,16 +165,18 @@ def get_users_from_database():
     return chat_ids
 
 async def send_notification(user_id, bot):
-    await bot.send_message(user_id, "Введите посещаемость, если вы еще этого не сделали ")
+    await bot.send_message(user_id, "Введите посещаемость")
 
 async def schedule_bot(bot):
     USERS = get_users_from_database()
     while True:
         current_time = datetime.now().strftime("%H:%M")
+        current_date = datetime.now().strftime('%Y-%m-%d')
         # Уведомление
-        if current_time == "12:00" or current_time == "16:07":
+        if current_time == "12:00" or current_time == "15:00" or current_time == "22:56":
             for user_id in USERS:
-                await send_notification(user_id, bot)
+                if await check_stats_notify(user_id, current_date): # Проверяет введены ли данные
+                    await send_notification(user_id, bot)
         # Новый день
         if current_time == "00:01" or current_time == "01:00": # час ночи на всякий случай
             await new_day()
