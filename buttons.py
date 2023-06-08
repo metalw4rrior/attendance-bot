@@ -15,6 +15,7 @@ kb_groups.add(cancel_btn)
 
 kb = ReplyKeyboardMarkup(resize_keyboard=True)
 b1 = KeyboardButton("Ввод статистики")
-b2 = KeyboardButton("Описание")
-kb.add(b1,b2).add(start_btn)
+b2 = KeyboardButton("Проверка")
+b3 = KeyboardButton("Описание")
+kb.add(b1,b2,b3).add(start_btn)
 

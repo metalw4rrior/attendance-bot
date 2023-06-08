@@ -49,9 +49,14 @@ async def start_command(message: types.Message):
 
 @dp.message_handler(commands=["restart"])
 async def start_command(message: types.Message):
-    await bot.send_message(message.from_user.id,
-                           text='Бот перезагружен',
-                           reply_markup=kb)
+    check = curator_cheker(str(message.from_user.id))
+    if await check: #not in database:
+        await message.answer('С нашей стороны произошли какие-то проблемы. Пожалуйста, введите ваш пароль.')
+        await Pas.password.set()
+    else:
+        await bot.send_message(message.from_user.id,
+                               text='Бот перезагружен',
+                               reply_markup=kb)
 
 # принимаем пасс
 @dp.message_handler(state = Pas.password)
@@ -161,13 +166,20 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
         await message.reply('Операция отменена. Ошибка в вводимых данных', reply_markup=kb)
 
 
+@dp.message_handler(Text(equals="Проверка"))
+async def description_command(message: types.Message):
+    date_of_report = datetime.now().strftime('%Y-%m-%d')
+    stats = await check_stats(message.from_user.id, date_of_report)
+    await message.answer(text=stats)
+
 @dp.message_handler(Text(equals="Описание"))
 async def description_command(message: types.Message):
     await message.answer(text="""Бот предназначен для отправки статистики по посещению.\n
 Для ввода статистики, нажмите на кнопку "Ввод статистики".\n
 Если вы хотите обновить статистику, нажмите на кнопку
 "Ввод статистики". Новые данные перезапишут старые!\n
-Если вы хотите отменить операцию, нажмите "Отмена".\n
+Для проверки статистики, нажмите "Проверка"\n
+Если вы хотите отменить ввод посещения, нажмите "Отмена".\n
 Если бот не реагирует на команды, нажмите на кнопку
 "/restart" или введите "/restart" с клавиатуры.""")
 
