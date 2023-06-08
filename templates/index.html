@@ -1,112 +1,140 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Отчет по посещаемости</title>
-    <style>
-      body {
-          background-color: #f5f5f5;
-          font-family: Arial, sans-serif;
-          margin: 0;
-          padding: 20px;
-      }
-      h1 {
-        color: #333333;
-        text-align: center;
-        margin-bottom: 20px;
+<head>
+  <title>Отчет по посещаемости</title>
+  <style>
+    body {
+      background-color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
     }
-
+    h1 {
+      color: #333333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
     p {
-        color: #333333;
-        text-align: left;
-        margin-bottom: 20px;
+      color: #333333;
+      text-align: left;
+      margin-bottom: 20px;
     }
-
     form {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
     }
-
     input[type="date"] {
-        padding: 10px;
-        border-radius: 5px;
+      padding: 10px;
+      border-radius: 5px;
     }
-
     input[type="submit"] {
-        padding: 10px 20px;
-        border-radius: 5px;
-        background-color: #4CAF50;
-        color: #ffffff;
-        border: none;
-        cursor: pointer;
+      padding: 10px 20px;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
     }
-
     input[type="submit"]:hover {
-        background-color: #45a049;
+      background-color: #45a049;
     }
-
     table {
-        border-collapse: collapse;
-        width: 100%;
+      border-collapse: collapse;
+      width: 100%;
     }
-
     th, td {
-        border: 1px solid #dddddd;
-        padding: 10px;
-        text-align: center;
+      border: 1px solid #dddddd;
+      padding: 10px;
+      text-align: center;
     }
-
     th {
-        background-color: #f9f9f9;
+      background-color: #f9f9f9;
     }
-
     tr:nth-child(even) {
-        background-color: #f2f2f2;
+      background-color: #f2f2f2;
     }
     tr.none-values {
-        background-color: #e7ebad; /* Желтый цвет */
-        color: #615f5f; /* Черный цвет текста */
+      background-color: #e7ebad;
+      color: #615f5f;
     }
-</style>
+    .group-separator {
+      border-top: 2px solid black;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-    <h1>Отчет по посещаемости КЦПТ</h1>
-    <form action="/process_date" method="post">
-      <input type="date" name="date" required>
-      <input type="submit" value="Выбрать дату">
+  <h1>Отчет по посещаемости КЦПТ</h1>
+  <form action="/process_date" method="post">
+    <input type="date" name="date" required>
+    <input type="submit" value="Выбрать дату">
   </form>
   {% if message %}
-      <div class="message">{{ message }}</div>
+    <div class="message">{{ message }}</div>
   {% endif %}
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Группа</th>
-            <th>Куратор</th>
-            <th>Дата</th>
-            <th>Уважительная</th>
-            <th>Неуважительная</th>
-            <th>Болезнь</th>
-            <th>Присутствуют</th>
-            <th>% посещаемости</th>
-            <th>% посещаемости c учетом У и Б</th>
-        </tr>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Группа</th>
+      <th>Куратор</th>
+      <th>Дата</th>
+      <th>Уважительная</th>
+      <th>Неуважительная</th>
+      <th>Болезнь</th>
+      <th>Присутствуют</th>
+      <th>% посещаемости</th>
+      <th>% посещаемости c учетом У и Б</th>
+    </tr>
     {% for note in attendance_report %}
-        <tr{% if note[4] == "-" or note[5] == "-" or note[6] == "-" %} class="none-values"{% endif %}>
-            <td>{{ note[0] }}</td>
-            <td>{{ note[1] }}</td>
-            <td>{{ note[2] }}</td>
-            <td>{{ note[3] }}</td>
-            <td>{{ note[4] }}</td>
-            <td>{{ note[5] }}</td>
-            <td>{{ note[6] }}</td>
-            <td>{{ note[7] }}</td>
-            <td>{{ note[8] }}</td>
-            <td>{{ note[9] }}</td>
-        </tr>
+      <tr{% if note[4] == "-" or note[5] == "-" or note[6] == "-" %} class="none-values"{% endif %}>
+        <td>{{ note[0] }}</td>
+        <td>{{ note[1] }}</td>
+        <td>{{ note[2] }}</td>
+        <td>{{ note[3] }}</td>
+        <td>{{ note[4] }}</td>
+        <td>{{ note[5] }}</td>
+        <td>{{ note[6] }}</td>
+        <td>{{ note[7] }}</td>
+        <td>{{ note[8] }}</td>
+        <td>{{ note[9] }}</td>
+      </tr>
     {% endfor %}
-    </table>
-    <p>*Если вы выбрали дату и не увидели ничего в таблице,
-       то это значит, что значения не были внесены кураторами.</p>
+  </table>
+  <script>
+var rows = document.getElementsByTagName('tr');
+var previousGroup = null;
+
+for (var i = 0; i < rows.length; i++) {
+  var groupCell = rows[i].getElementsByTagName('td')[1];
+  if (groupCell) {
+    var groupName = groupCell.textContent || groupCell.innerText;
+
+    if (
+      groupName === '20-11-1 ИСиП' ||
+      groupName === '21-11 ИБАС' ||
+      groupName === '20-11-1 ССА' ||
+      groupName === '20-11-1 КП' ||
+      groupName === '20-11 АТ' ||
+      groupName === '20-11-1 ОСАТПиП' ||
+      groupName === '20-11 ПДО ТТ' 
+    ) {
+      if (previousGroup !== groupName) {
+        var separatorRow = document.createElement('tr');
+        separatorRow.className = 'group-separator';
+        var separatorCell = document.createElement('td');
+        separatorCell.colSpan = '10';
+        separatorRow.appendChild(separatorCell);
+        rows[i].parentNode.insertBefore(separatorRow, rows[i]);
+        previousGroup = groupName;
+      }
+    } else {
+      previousGroup = null;
+    }
+  }
+}
+
+  </script>
 </body>
 </html>
+
