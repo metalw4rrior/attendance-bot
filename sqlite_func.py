@@ -67,7 +67,7 @@ async def itog_percent(disrespectful_reason, valid_reason, disease_reason, user_
     how_much = cur.execute(f"SELECT how_much FROM groups WHERE curator_id=?", (curator_db_id,)).fetchone()
     how_much = int(str(how_much).translate(delete))
     itog_percent1 = ((how_much - disrespectful_reason - valid_reason - disease_reason) / how_much) * 100
-    itog_percent1 = str(itog_percent1)+'%'
+    itog_percent1 = str(round(itog_percent1))+'%'
     conn.close()
     return itog_percent1
 
@@ -81,7 +81,7 @@ async def itog_percent_u_b(disrespectful_reason, user_id):
     how_much = cur.execute(f"SELECT how_much FROM groups WHERE curator_id=?", (curator_db_id,)).fetchone()
     how_much = int(str(how_much).translate(delete))
     itog_percent1 = ((how_much - disrespectful_reason) / how_much) * 100
-    itog_percent_u_b = str(itog_percent1)+'%'
+    itog_percent_u_b = str(round(itog_percent1))+'%'
 
     conn.close()
     return itog_percent_u_b
