@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Отчет по посещаемости</title>
+  <title>Отчет по посещаемости аааа</title>
   <style>
     body {
       background-color: #f5f5f5;
@@ -58,7 +58,7 @@
       background-color: #e7ebad;
       color: #615f5f;
     }
-    .group-separator {
+    .group-data {
       border-top: 2px solid rgb(17, 37, 11);
       margin-top: 20px ;
       border-bottom: 2px solid rgb(17, 37, 11);
@@ -67,9 +67,10 @@
 </head>
 <body>
   <h1>Отчет по посещаемости КЦПТ</h1>
-  <form action="/process_date" method="post">
-    <input type="date" name="date" required>
-    <input type="submit" value="Выбрать дату">
+<form id="date-form" action="/process_date" method="post">
+  <input type="date" id="date-input" name="date" required>
+  <input type="submit" id="submit-button" value="Выбрать дату">
+</form>
   </form>
   {% if message %}
     <div class="message">{{ message }}</div>
@@ -103,39 +104,159 @@
     {% endfor %}
   </table>
   <script>
-var rows = document.getElementsByTagName('tr');
-var previousGroup = null;
-
-for (var i = 0; i < rows.length; i++) {
-  var groupCell = rows[i].getElementsByTagName('td')[1];
-  if (groupCell) {
-    var groupName = groupCell.textContent || groupCell.innerText;
-
-    if (
-      groupName === '20-11-1 ИСиП' ||
-      groupName === '21-11 ИБАС' ||
-      groupName === '20-11-1 ССА' ||
-      groupName === '20-11-1 КП' ||
-      groupName === '20-11 АТ' ||
-      groupName === '20-11-1 ОСАТПиП' ||
-      groupName === '20-11 ПДО ТТ' 
-    ) {
-      if (previousGroup !== groupName) {
-        var separatorRow = document.createElement('tr');
-        separatorRow.className = 'group-separator';
-        var separatorCell = document.createElement('td');
-        separatorCell.colSpan = '10';
-        separatorRow.appendChild(separatorCell);
-        rows[i].parentNode.insertBefore(separatorRow, rows[i]);
-        previousGroup = groupName;
+    var rows = document.getElementsByTagName('tr');
+    var previousGroup = null;
+    var dataToInsert = JSON.parse('{{ all_TEST_count|safe }}');
+    var subList1 = dataToInsert[0];
+    var subList2 = dataToInsert[1];
+    var subList3 = dataToInsert[2];
+    var subList4 = dataToInsert[3];
+    var subList5 = dataToInsert[4];
+    var subList6 = dataToInsert[5];
+    var subList7 = dataToInsert[6];
+    var subList8 = dataToInsert[7];
+    var subList9 = dataToInsert[8];
+    for (var i = 0; i < rows.length; i++) {
+    var groupCell = rows[i].getElementsByTagName('td')[1];
+    if (groupCell) {
+      var groupName = groupCell.textContent || groupCell.innerText;
+      if (
+        groupName === '20-11-1 ИСиП' ||
+        groupName === '21-11 ИБАС' ||
+        groupName === '20-11-1 ССА' ||
+        groupName === '20-11-1 КП' ||
+        groupName === '20-11 АТ' ||
+        groupName === '20-11-1 ОСАТПиП' ||
+        groupName === '20-11 ПДО ТТ' ||
+        groupName === '11-11 TEST'
+      ) {
+        if (previousGroup !== groupName) {
+          if (groupName === '11-11 TEST') {
+            var dataRow = document.createElement('tr');
+            dataRow.className = 'group-data';
+            for (var j = 0; j < subList8.length; j++) {
+              if (j < 10) {
+                var dataCell = document.createElement('td');
+                dataCell.innerHTML = subList8[j];
+                dataRow.appendChild(dataCell);
+              } else {
+                break;
+              }
+            }
+            rows[i].parentNode.insertBefore(dataRow, rows[i]);
+          } else if (groupName === '20-11-1 ИСиП') {
+            var dataRow = document.createElement('tr');
+            dataRow.className = 'group-data';
+            for (var j = 0; j < subList2.length; j++) {
+              if (j < 10) {
+                var dataCell = document.createElement('td');
+                dataCell.innerHTML = subList2[j];
+                dataRow.appendChild(dataCell);
+              } else {
+                break;
+              }
+            }
+            rows[i].parentNode.insertBefore(dataRow, rows[i]);
+          } else if (groupName === '20-11-1 ССА') {
+            var dataRow = document.createElement('tr');
+            dataRow.className = 'group-data';
+            for (var j = 0; j < subList6.length; j++) {
+              if (j < 10) {
+                var dataCell = document.createElement('td');
+                dataCell.innerHTML = subList6[j];
+                dataRow.appendChild(dataCell);
+              } else {
+                break;
+              }
+            }
+            rows[i].parentNode.insertBefore(dataRow, rows[i]);
+          } else if (groupName === '20-11-1 ОСАТПиП') {
+            var dataRow = document.createElement('tr');
+            dataRow.className = 'group-data';
+            for (var j = 0; j < subList5.length; j++) {
+              if (j < 10) {
+                var dataCell = document.createElement('td');
+                dataCell.innerHTML = subList5[j];
+                dataRow.appendChild(dataCell);
+              } else {
+                break;
+              }
+            }
+            rows[i].parentNode.insertBefore(dataRow, rows[i]);
+          } else if (groupName === '20-11-1 КП') {
+            var dataRow = document.createElement('tr');
+            dataRow.className = 'group-data';
+            for (var j = 0; j < subList4.length; j++) {
+              if (j < 10) {
+                var dataCell = document.createElement('td');
+                dataCell.innerHTML = subList4[j];
+                dataRow.appendChild(dataCell);
+              } else {
+                break;
+              }
+            }
+            rows[i].parentNode.insertBefore(dataRow, rows[i]);
+          } else if (groupName === '21-11 ИБАС') {
+            var dataRow = document.createElement('tr');
+            dataRow.className = 'group-data';
+            for (var j = 0; j < subList3.length; j++) {
+              if (j < 10) {
+                var dataCell = document.createElement('td');
+                dataCell.innerHTML = subList3[j];
+                dataRow.appendChild(dataCell);
+              } else {
+                break;
+              }
+            }
+            rows[i].parentNode.insertBefore(dataRow, rows[i]);
+          } else if (groupName === '20-11 АТ') {
+            var dataRow = document.createElement('tr');
+            dataRow.className = 'group-data';
+            for (var j = 0; j < subList2.length; j++) {
+              if (j < 10) {
+                var dataCell = document.createElement('td');
+                dataCell.innerHTML = subList2[j];
+                dataRow.appendChild(dataCell);
+              } else {
+                break;
+              }
+            }
+            rows[i].parentNode.insertBefore(dataRow, rows[i]);
+          } else if (groupName === '20-11 ПДО ТТ') {
+            var dataRow = document.createElement('tr');
+            dataRow.className = 'group-data';
+            for (var j = 0; j < subList1.length; j++) {
+              if (j < 10) {
+                var dataCell = document.createElement('td');
+                dataCell.innerHTML = subList1[j];
+                dataRow.appendChild(dataCell);
+              } else {
+                break;
+              }
+            }
+            rows[i].parentNode.insertBefore(dataRow, rows[i]);
+          }
+          previousGroup = groupName;
+        } else {
+          previousGroup = null;
+        }
       }
-    } else {
-      previousGroup = null;
     }
   }
-}
+</script>
+  <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var currentDate = new Date().toISOString().split('T')[0];
+    document.getElementById("date-input").value = currentDate;
 
+    // Проверяем, была ли форма уже отправлена ранее
+    if (!sessionStorage.getItem("formSubmitted")) {
+      sessionStorage.setItem("formSubmitted", "true");
+      document.getElementById("date-form").submit();
+    }
+  });
   </script>
 </body>
 </html>
 
+  
