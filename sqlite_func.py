@@ -17,6 +17,11 @@ async def edit_profile(password, chat_id):
     cur.execute(f"UPDATE curators SET chat_id = '{chat_id}' WHERE password = '{password}'")
     db.commit()
 
+async def logout(chat_id):
+    cur.execute(f"UPDATE curators SET chat_id = '' WHERE chat_id = '{chat_id}'")
+    db.commit()
+
+
 # Эта функция проверяет, есть ли в базе id куратора
 async def curator_cheker(chat_id):
     info = cur.execute(f'SELECT chat_id FROM curators WHERE chat_id={chat_id}').fetchone()
@@ -101,7 +106,7 @@ async def get_unoccupied_groups(user_id):
 # Достает фио куратора по chat_id
 async def get_curator_fio(user_id):
     curator_fio = str(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None}
+    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
     curator_fio = curator_fio.translate(delete)
     return curator_fio
 
@@ -110,7 +115,7 @@ async def get_stats(user_id, date_of_report):
     fio = await get_curator_fio(user_id)
     stats = list(cur.execute(f"""SELECT group_name, disrespectful_reason, valid_reason, disease_reason
                             FROM attendance_report
-                            WHERE date_of_report = '{date_of_report}' and curator_fio = {fio} """).fetchall())
+                            WHERE date_of_report = '{date_of_report}' and curator_fio = '{fio}' """).fetchall())
     delete = {ord('[') : None, ord(']') : None, ord('(') : None, ord(')') : None, ord(',') : None, ord("'") : None}
     stats = [list(i) for i in stats]
     return stats
@@ -118,7 +123,8 @@ async def get_stats(user_id, date_of_report):
 # Функция спецом для кнопки
 async def check_stats(user_id, date_of_report):
     stats = await get_stats(user_id, date_of_report)
-    answer = ""
+    curator_fio = await get_curator_fio(user_id)
+    answer = f"Куратор - {curator_fio}\n\n"
     for i in stats:
         if i[1] == "-" or i[2] == "-" or i[3] == "-":
             answer += f'Группа "{i[0]}" не заполнена\n\n'
@@ -173,7 +179,7 @@ async def schedule_bot(bot):
         current_time = datetime.now().strftime("%H:%M")
         current_date = datetime.now().strftime('%Y-%m-%d')
         # Уведомление
-        if current_time == "12:00" or current_time == "15:00" or current_time == "22:56":
+        if current_time == "12:00" or current_time == "15:00":
             for user_id in USERS:
                 if await check_stats_notify(user_id, current_date): # Проверяет введены ли данные
                     await send_notification(user_id, bot)

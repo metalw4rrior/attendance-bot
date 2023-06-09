@@ -8,7 +8,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from config import API_TOKEN
 from sqlite_func import *
-from buttons import kb, kb_groups, start_btn
+from buttons import kb, kb_groups, kb_start, restart_btn
 from datetime import datetime
 import schedule
 import asyncio
@@ -48,7 +48,7 @@ async def start_command(message: types.Message):
                                reply_markup=kb)
 
 @dp.message_handler(commands=["restart"])
-async def start_command(message: types.Message):
+async def restart_command(message: types.Message):
     check = curator_cheker(str(message.from_user.id))
     if await check: #not in database:
         await message.answer('С нашей стороны произошли какие-то проблемы. Пожалуйста, введите ваш пароль.')
@@ -58,18 +58,38 @@ async def start_command(message: types.Message):
                                text='Бот перезагружен',
                                reply_markup=kb)
 
+@dp.message_handler(commands=["exit"])
+async def start_command(message: types.Message):
+    await logout(message.from_user.id)
+    await bot.send_message(message.from_user.id,
+                           text='Вы вышли из аккаунта.\nДля продолжения работы, нажмите "/start"',
+                           reply_markup=kb_start)
+
+@dp.message_handler(commands=["help"])
+async def help_command(message: types.Message):
+    await logout(message.from_user.id)
+    await bot.send_message(message.from_user.id,
+                           text="""Это бот для ввода статистики в КЦПТ.
+                           \nДля работы с ботом, нажмите или введите "/start". После, введите пароль.
+                           \nЕсли вы не получили пароль, обратитесь за ним к Гуляеву И.П.""",
+                           reply_markup=kb_start)
+
 # принимаем пасс
 @dp.message_handler(state = Pas.password)
 async def load_password(message: types.Message, state: FSMContext):
-    pass_check = password_cheker(str(message.text))
-    if await pass_check: #not in database
-        await message.answer('Пароль введен неверно, попробуйте снова. Если вы не получили пароль, обратитесь за ним к Гуляеву И.П. ')
+    pass_check = await password_cheker(message.text)
+    if message.text == "/help":
+        await help_command(message)
+        await state.finish()
+    elif pass_check: #not in database
+        await message.answer('Пароль введен неверно, попробуйте снова.')
         await Pas.password.set()
     else:
         await edit_profile(message.text, message.from_user.id)
         await message.answer(text='Вы успешно прошли авторизацию.',
                              reply_markup=kb)
-    await state.finish()
+        await state.finish()
+
 
 reason = []
 @dp.message_handler(Text(equals="Ввод статистики"))
@@ -80,7 +100,7 @@ async def load_statistics(message: types.Message):
     for i in groups:
         button = KeyboardButton(i)
         kb_groups.insert(button)
-    kb_groups.add(start_btn)
+    kb_groups.add(restart_btn)
     await message.answer(text='Выберите группу',
                          reply_markup=kb_groups)
     await Attendance.group.set()
@@ -174,14 +194,20 @@ async def description_command(message: types.Message):
 
 @dp.message_handler(Text(equals="Описание"))
 async def description_command(message: types.Message):
-    await message.answer(text="""Бот предназначен для отправки статистики по посещению.\n
+    await message.answer(text='''Бот предназначен для отправки статистики по посещению.\n
 Для ввода статистики, нажмите на кнопку "Ввод статистики".\n
 Если вы хотите обновить статистику, нажмите на кнопку
 "Ввод статистики". Новые данные перезапишут старые!\n
 Для проверки статистики, нажмите "Проверка"\n
 Если вы хотите отменить ввод посещения, нажмите "Отмена".\n
 Если бот не реагирует на команды, нажмите на кнопку
-"/restart" или введите "/restart" с клавиатуры.""")
+"/restart" или введите "/restart" с клавиатуры.\n
+Если вы хотите выйти из аккаунта, введите "/exit"''')
+
+# Если вводят что угодно, кроме команд
+@dp.message_handler()
+async def unknown_text(message: types.Message):
+    await message.answer(text="Команда не распознана")
 
 # Запуск бота
 if __name__ == "__main__":
