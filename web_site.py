@@ -1,102 +1,98 @@
 #!/usr/bin/env python3
 import sqlite3
+from sqlite_func import db_start
 from flask import Flask, render_template,request
-import sqlite3
-from datetime import datetime
-from datetime import date
+from datetime import datetime, date
 import json
+from collections import OrderedDict
 
 app = Flask(__name__)
-def conn_db():
-    conn = sqlite3.connect('database_project.db')
-    if conn:
-        print ("Connected Successfully")
-    else:
-        print ("Connection Not Established")
-    conn.commit()
-    conn.close()
 
 @app.route('/')
 def index():
     current_date = date.today().isoformat()
     return render_template('index.html', current_date=current_date)
+
 @app.route('/process_date', methods=['POST'])
 def process_date():
     date_str = request.form['date']
     date_obj = datetime.strptime(date_str, '%Y-%m-%d')
     formatted_date = date_obj.strftime('%Y-%m-%d')
-    conn = sqlite3.connect('database_project.db')
-    c = conn.cursor()
-    c.execute("""SELECT * FROM attendance_report WHERE date_of_report = ? ORDER BY CASE
-      WHEN group_name LIKE '%ДО' THEN 1
-      WHEN group_name LIKE '%ПДО ТТ' THEN 2
-      WHEN group_name LIKE '%АТ' THEN 3
-      WHEN group_name LIKE '%ИБАС' THEN 4
-      WHEN group_name LIKE '%КП' THEN 5
-      WHEN group_name LIKE '%ОСАТПиП' THEN 6
-      WHEN group_name LIKE '%ССА' THEN 7
-      WHEN group_name LIKE '%ИСиП' THEN 8
-      WHEN group_name LIKE '%TEST' THEN 9
-      ELSE 10 END
-      , group_name""", (formatted_date,))
-    attendance_report = c.fetchall()
-    conn.close()
-    endings = ['ДО','ПДО ТТ','АТ','ИБАС','КП','ОСАТПиП','ССА','ИСиП','TEST']
-    all_count = valid_from_database(endings)
+    endings = get_groups_names(formatted_date)
+    all_count = []
+    for i in endings:
+        all_count.append(stats_of_group(i, formatted_date))
     serialized_data = json.dumps(all_count)
     serialized_data_with_brackets = '[' + serialized_data[1:-1] + ']'
-    return render_template('index.html', attendance_report=attendance_report, all_TEST_count=serialized_data_with_brackets)
+    return render_template('index.html', attendance_report=attendance_report(formatted_date,endings), all_TEST_count=serialized_data_with_brackets)
+
+# Выводит стату по дате и в порядке групп
+def attendance_report(formatted_date, endings):
+    db = sqlite3.connect('database_project.db')         # Оно работает благодаря get_groups_names,
+    cur = db.cursor()                                   # который собирает отсортированные группы по подразделениям
+    result = []
+    for group in endings:
+        attendance_report = cur.execute(f"""SELECT * FROM attendance_report
+        WHERE group_name LIKE '% {group}%' AND date_of_report == '{formatted_date}' ORDER BY group_name""").fetchall()
+        for i in attendance_report:
+            result.append(i)
+    return result
+
+# Достает имена и сортирует по подразделению
+def get_groups_names(formatted_date):
+    db = sqlite3.connect('database_project.db')
+    cur = db.cursor()
+    groups = cur.execute("SELECT group_name FROM groups ORDER BY branch_id").fetchall()
+    groups = [list(i) for i in groups]
+    name_of_group = []
+    for i in groups:
+        group = i[0].split()[1]
+        name_of_group.append(group)
+    groups_names = list(OrderedDict.fromkeys(name_of_group))
+    return groups_names
+
+# Собирает в список всю стату по группам одного типа
+def stats_of_group(group, formatted_date):
+    db = sqlite3.connect('database_project.db')
+    cur = db.cursor()
+    final_stats = [0,0,0,0]
+    stats_of_one_type_of_group = cur.execute(f"""SELECT valid_reason, disrespectful_reason, disease_reason, who_is_present
+FROM attendance_report WHERE group_name LIKE '% {group}%' and date_of_report = '{formatted_date}'""").fetchall()
+    stats_of_one_type_of_group = [list(i) for i in stats_of_one_type_of_group]
+
+    # Суммируем всю стату по категориям
+    for stats_of_one_group in stats_of_one_type_of_group:
+        for stat in range(len(stats_of_one_group)):
+            if stats_of_one_group[stat] != "-":
+                final_stats[stat]+=int(stats_of_one_group[stat])
     
+    # Суммируем всех в одну переменную
+    sum_all = 0
+    for stat in range(len(final_stats)):
+        if final_stats[stat] != "-":
+            sum_all+=int(final_stats[stat])
+    
+    # Высчитываем общие проценты для группы
+    if sum_all!=0 and final_stats[0] != "-":
+        final_stats.append("")     # Комментарий
+        final_stats.append(str(round(int(final_stats[3])/sum_all*100))+"%")
+        final_stats.append(str(round((sum_all-int(final_stats[1]))/sum_all*100))+"%")
+    else:
+        final_stats.append("")     # Комментарий
+        final_stats.append("0%")
+        final_stats.append("0%")
 
-def valid_from_database(gr_name_ending):
-    absenteeism_counts = []
-    date_str = request.form['date']
-    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
-    formatted_date = date_obj.strftime('%Y-%m-%d')
-    conn = sqlite3.connect('database_project.db')
-    c = conn.cursor()
-    c.execute("SELECT group_name, valid_reason, disrespectful_reason, disease_reason, who_is_present FROM attendance_report WHERE date_of_report = ?", (formatted_date,))
-    rows = c.fetchall()
-    test_lib = []
-    TEST_count = [0, 0, 0, 0, 0]  # Инициализация списка сумм значений
-    all_TEST_count = []
-    for i in gr_name_ending:
-        test_lib.clear()
-        for row in rows:
-            absenteeism_counts.append(row)
-            if str(row[0]).endswith(i):
-                test_lib.append(row)
-        valid_sum = 0
-        disr_sum = 0
-        diseas_sum = 0
-        present_sum = 0
-        for row in test_lib:
-            valid_reason = row[1]
-            disr_reason = row[2]
-            diseas_reason = row[3]
-            present_here = row[4]
-            if valid_reason != "-":
-                valid_sum += int(valid_reason)
-            if disr_reason != "-":
-                disr_sum += int(disr_reason)
-            if diseas_reason != "-":
-                diseas_sum += int(diseas_reason)
-            if present_here != "-":
-                present_sum += int(present_here)
-        if present_sum != 0:
-            sum_all = present_sum+valid_sum+diseas_sum+disr_sum
-            all_for_percent = round((((sum_all-disr_sum-valid_sum-diseas_sum) / sum_all) * 100),1)
-            all_for_u_b = round((((sum_all-disr_sum)/sum_all)*100),1)
-            all_for_percent = str(all_for_percent)+'%'
-            all_for_u_b = str(all_for_u_b)+'%'
-        else:
-            all_for_percent = '0%'
-            all_for_u_b = '0%'
-        this_all = valid_sum + diseas_sum + disr_sum
-        TEST_count = ['','','','Итого',valid_sum, disr_sum, diseas_sum, present_sum, all_for_percent, all_for_u_b]
-        all_TEST_count.append(TEST_count)
+    # Поле "Итого"
+    final_stats.insert(0,"Итого")
+    
+    # Добавляем 3 пустых значения
+    for i in range(3):
+        final_stats.insert(0,"")
+    
+    print(final_stats, group) # Для удобства, можно посмотреть вывод в теримнале
+    return final_stats
 
-    return all_TEST_count
+
 if __name__ == '__main__':
-    conn_db()
+    db_start()
     app.run(host = '0.0.0.0')

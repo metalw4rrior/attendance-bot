@@ -85,6 +85,7 @@
       <th>Неуважительная</th>
       <th>Болезнь</th>
       <th>Присутствуют</th>
+      <th>Комментарий</th>
       <th>% посещаемости</th>
       <th>% посещаемости c учетом У и Б</th>
     </tr>
@@ -100,10 +101,11 @@
         <td>{{ note[7] }}</td>
         <td>{{ note[8] }}</td>
         <td>{{ note[9] }}</td>
+        <td>{{ note[10] }}</td>
       </tr>
     {% endfor %}
   </table>
-  <script>
+    <script>
     var rows = document.getElementsByTagName('tr');
     var previousGroup = null;
     var dataToInsert = JSON.parse('{{ all_TEST_count|safe }}');
