@@ -24,7 +24,7 @@ def process_date():
         all_count.append(stats_of_group(i, formatted_date))
     serialized_data = json.dumps(all_count)
     serialized_data_with_brackets = '[' + serialized_data[1:-1] + ']'
-    return render_template('index.html', attendance_report=attendance_report(formatted_date,endings), all_TEST_count=serialized_data_with_brackets)
+    return render_template('index.html', attendance_report=attendance_report(formatted_date,endings), endings=endings, all_TEST_count=serialized_data_with_brackets)
 
 # Выводит стату по дате и в порядке групп
 def attendance_report(formatted_date, endings):
@@ -89,7 +89,7 @@ FROM attendance_report WHERE group_name LIKE '% {group}%' and date_of_report = '
     for i in range(3):
         final_stats.insert(0,"")
     
-    print(final_stats, group) # Для удобства, можно посмотреть вывод в теримнале
+    # print(final_stats, group) # Для удобства, можно посмотреть вывод в теримнале
     return final_stats
 
 
