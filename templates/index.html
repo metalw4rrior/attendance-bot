@@ -108,7 +108,7 @@
   <script>
     rows = document.getElementsByTagName("tr");
     
-    var groups = {{ endings|tojson }}
+    var groups = {{ endings|safe }}
     console.log(groups);
     var test = {{ all_TEST_count|safe }}
     console.log(test)
