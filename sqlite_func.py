@@ -3,7 +3,7 @@ from datetime import datetime
 import schedule
 import asyncio
 
-async def db_start():
+def db_start():
     global db,cur
     db = sl.connect('database_project.db')
     cur = db.cursor()
@@ -37,12 +37,13 @@ async def password_cheker(password):
 
 # Я думаю, можно назвать это говнокодом
 # Ввод статистики в бд
-async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, date_of_report, itog_percent1, itog_percent2):
+async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reason, present, comment, date_of_report, itog_percent1, itog_percent2):
     cur.execute(f"""UPDATE attendance_report SET
     valid_reason = {valid_reason},
     disrespectful_reason = {disrespectful_reason},
     disease_reason = {disease_reason},
     who_is_present = {present},
+    comment = "{comment}",
     itog_percent = "{itog_percent1}",
     itog_u_b = "{itog_percent2}"
 

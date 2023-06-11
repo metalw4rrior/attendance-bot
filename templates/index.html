@@ -85,6 +85,7 @@
       <th>Неуважительная</th>
       <th>Болезнь</th>
       <th>Присутствуют</th>
+      <th>Комментарий</th>
       <th>% посещаемости</th>
       <th>% посещаемости c учетом У и Б</th>
     </tr>
@@ -100,150 +101,34 @@
         <td>{{ note[7] }}</td>
         <td>{{ note[8] }}</td>
         <td>{{ note[9] }}</td>
+        <td>{{ note[10] }}</td>
       </tr>
     {% endfor %}
   </table>
   <script>
-    var rows = document.getElementsByTagName('tr');
-    var previousGroup = null;
-    var dataToInsert = JSON.parse('{{ all_TEST_count|safe }}');
-    var subList1 = dataToInsert[0];
-    var subList2 = dataToInsert[1];
-    var subList3 = dataToInsert[2];
-    var subList4 = dataToInsert[3];
-    var subList5 = dataToInsert[4];
-    var subList6 = dataToInsert[5];
-    var subList7 = dataToInsert[6];
-    var subList8 = dataToInsert[7];
-    var subList9 = dataToInsert[8];
-    for (var i = 0; i < rows.length; i++) {
-    var groupCell = rows[i].getElementsByTagName('td')[1];
-    if (groupCell) {
-      var groupName = groupCell.textContent || groupCell.innerText;
-      if (
-        groupName === '20-11-1 ИСиП' ||
-        groupName === '21-11 ИБАС' ||
-        groupName === '20-11-1 ССА' ||
-        groupName === '20-11-1 КП' ||
-        groupName === '20-11 АТ' ||
-        groupName === '20-11-1 ОСАТПиП' ||
-        groupName === '20-11 ПДО ТТ' ||
-        groupName === '11-11 TEST'
-      ) {
-        if (previousGroup !== groupName) {
-          if (groupName === '11-11 TEST') {
-            var dataRow = document.createElement('tr');
+    rows = document.getElementsByTagName("tr");
+    
+    var groups = {{ endings|safe }}
+    console.log(groups);
+    var test = {{ all_TEST_count|safe }}
+    console.log(test)
+    for (var i = 0; i < groups.length; i++) {
+      var group = groups[i]
+      for (let j = rows.length - 1; j >= 0; j--) { // Обратный цикл
+        if (rows[j].textContent.includes(" "+group)) { // Если строка содержит "group"
+            var dataRow = document.createElement('tr'); // Создаем строку
             dataRow.className = 'group-data';
-            for (var j = 0; j < subList8.length; j++) {
-              if (j < 10) {
-                var dataCell = document.createElement('td');
-                dataCell.innerHTML = subList8[j];
-                dataRow.appendChild(dataCell);
-              } else {
-                break;
-              }
+            for (var f = 0; f < test[0].length; f++) { // Добавляем данные по типу группы
+              var dataCell = document.createElement('td'); // Создаем поле
+              dataRow.appendChild(dataCell);
+              dataCell.innerHTML = test[i][f];
+            rows[j].parentNode.insertBefore(dataRow, rows[j+1]);
             }
-            rows[i].parentNode.insertBefore(dataRow, rows[i]);
-          } else if (groupName === '20-11-1 ИСиП') {
-            var dataRow = document.createElement('tr');
-            dataRow.className = 'group-data';
-            for (var j = 0; j < subList2.length; j++) {
-              if (j < 10) {
-                var dataCell = document.createElement('td');
-                dataCell.innerHTML = subList2[j];
-                dataRow.appendChild(dataCell);
-              } else {
-                break;
-              }
-            }
-            rows[i].parentNode.insertBefore(dataRow, rows[i]);
-          } else if (groupName === '20-11-1 ССА') {
-            var dataRow = document.createElement('tr');
-            dataRow.className = 'group-data';
-            for (var j = 0; j < subList6.length; j++) {
-              if (j < 10) {
-                var dataCell = document.createElement('td');
-                dataCell.innerHTML = subList6[j];
-                dataRow.appendChild(dataCell);
-              } else {
-                break;
-              }
-            }
-            rows[i].parentNode.insertBefore(dataRow, rows[i]);
-          } else if (groupName === '20-11-1 ОСАТПиП') {
-            var dataRow = document.createElement('tr');
-            dataRow.className = 'group-data';
-            for (var j = 0; j < subList5.length; j++) {
-              if (j < 10) {
-                var dataCell = document.createElement('td');
-                dataCell.innerHTML = subList5[j];
-                dataRow.appendChild(dataCell);
-              } else {
-                break;
-              }
-            }
-            rows[i].parentNode.insertBefore(dataRow, rows[i]);
-          } else if (groupName === '20-11-1 КП') {
-            var dataRow = document.createElement('tr');
-            dataRow.className = 'group-data';
-            for (var j = 0; j < subList4.length; j++) {
-              if (j < 10) {
-                var dataCell = document.createElement('td');
-                dataCell.innerHTML = subList4[j];
-                dataRow.appendChild(dataCell);
-              } else {
-                break;
-              }
-            }
-            rows[i].parentNode.insertBefore(dataRow, rows[i]);
-          } else if (groupName === '21-11 ИБАС') {
-            var dataRow = document.createElement('tr');
-            dataRow.className = 'group-data';
-            for (var j = 0; j < subList3.length; j++) {
-              if (j < 10) {
-                var dataCell = document.createElement('td');
-                dataCell.innerHTML = subList3[j];
-                dataRow.appendChild(dataCell);
-              } else {
-                break;
-              }
-            }
-            rows[i].parentNode.insertBefore(dataRow, rows[i]);
-          } else if (groupName === '20-11 АТ') {
-            var dataRow = document.createElement('tr');
-            dataRow.className = 'group-data';
-            for (var j = 0; j < subList2.length; j++) {
-              if (j < 10) {
-                var dataCell = document.createElement('td');
-                dataCell.innerHTML = subList2[j];
-                dataRow.appendChild(dataCell);
-              } else {
-                break;
-              }
-            }
-            rows[i].parentNode.insertBefore(dataRow, rows[i]);
-          } else if (groupName === '20-11 ПДО ТТ') {
-            var dataRow = document.createElement('tr');
-            dataRow.className = 'group-data';
-            for (var j = 0; j < subList1.length; j++) {
-              if (j < 10) {
-                var dataCell = document.createElement('td');
-                dataCell.innerHTML = subList1[j];
-                dataRow.appendChild(dataCell);
-              } else {
-                break;
-              }
-            }
-            rows[i].parentNode.insertBefore(dataRow, rows[i]);
-          }
-          previousGroup = groupName;
-        } else {
-          previousGroup = null;
+            break; // принудительно выходим из цикла
         }
       }
     }
-  }
-</script>
+  </script>
   <script>
   document.addEventListener("DOMContentLoaded", function() {
     var currentDate = new Date().toISOString().split('T')[0];

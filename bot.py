@@ -21,7 +21,7 @@ bot = Bot(API_TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 async def on_startup(self):
-    await db_start()
+    db_start()
     # В loop'е работает, хз почему
     loop = asyncio.get_event_loop()
     loop.create_task(schedule_bot(bot)) # Принимает bot т.к. без него не отправить уведу, а импортировать в sqlite_func не особо хочется
@@ -35,6 +35,7 @@ class Attendance(StatesGroup):
     disrespectful_reason = State()   # Отсутствуют
     valid_reason = State()           # Уважительная
     disease_reason = State()         # Болеют
+    comment = State()                # Коментарий
 
 @dp.message_handler(commands=["start"])
 async def start_command(message: types.Message):
@@ -159,23 +160,15 @@ async def load_reason_U(message: types.Message, state: FSMContext)-> None:
         reason.clear()
         await message.reply('Операция отменена. Ошибка в вводимых данных', reply_markup=kb)
 
+
 @dp.message_handler(state = Attendance.disease_reason)
-async def load_reason_B(message: types.Message, state: FSMContext)-> None:
+async def load_reason_U(message: types.Message, state: FSMContext)-> None:
     if message.text.isdigit():
         reason.append(int(message.text)) #БОЛЕЗНЬ  ИНДЕКС [3]
         present = await all_that_present(reason[1], reason[2], reason[3], message.from_user.id)
-        itog_percent1 = await itog_percent(reason[1], reason[2], reason[3], message.from_user.id)
-        itog_percent2 = await itog_percent_u_b(reason[1], message.from_user.id)
         if present or present == 0:
-            date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
-            date_str = str(date_obj.strftime('%Y-%m-%d'))   # Преобразуем объект даты в строку в нужном формате
-            # Тут заносим
-            await in_dbase(reason[0], reason[1], reason[2], reason[3], present, date_str,itog_percent1,itog_percent2)
-            reason.clear()
-            await bot.send_message(message.from_user.id,
-                                       text='Вы успешно ввели данные.',
-                                       reply_markup=kb)
-            await state.finish()
+            await message.answer('Что сделано куратором/заведующим отделением')
+            await Attendance.comment.set()
         else:
             await state.finish()
             reason.clear()
@@ -184,6 +177,22 @@ async def load_reason_B(message: types.Message, state: FSMContext)-> None:
         await state.finish()
         reason.clear()
         await message.reply('Операция отменена. Ошибка в вводимых данных', reply_markup=kb)
+
+@dp.message_handler(state = Attendance.comment)
+async def load_reason_B(message: types.Message, state: FSMContext)-> None:
+    reason.append(str(message.text)) # Комментарий [4]
+    present = await all_that_present(reason[1], reason[2], reason[3], message.from_user.id)
+    itog_percent1 = await itog_percent(reason[1], reason[2], reason[3], message.from_user.id)
+    itog_percent2 = await itog_percent_u_b(reason[1], message.from_user.id)
+    date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
+    date_str = str(date_obj.strftime('%Y-%m-%d'))   # Преобразуем объект даты в строку в нужном формате
+    # Тут заносим
+    await in_dbase(reason[0], reason[1], reason[2], reason[3], present, reason[4], date_str,itog_percent1,itog_percent2)
+    reason.clear()
+    await bot.send_message(message.from_user.id,
+                               text='Вы успешно ввели данные.',
+                               reply_markup=kb)
+    await state.finish()
 
 
 @dp.message_handler(Text(equals="Проверка"))
