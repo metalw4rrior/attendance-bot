@@ -109,20 +109,20 @@
     rows = document.getElementsByTagName("tr");
     
     var groups = {{ endings|safe }}
-    console.log(groups);
-    var test = {{ all_TEST_count|safe }}
-    console.log(test)
+    var data = {{ all_TEST_count|safe }}
+    var branches = {{ branches|safe }}
+    console.log(branches)
     for (var i = 0; i < groups.length; i++) {
       var group = groups[i]
       for (let j = rows.length - 1; j >= 0; j--) { // Обратный цикл
         if (rows[j].textContent.includes(" "+group)) { // Если строка содержит "group"
             var dataRow = document.createElement('tr'); // Создаем строку
             dataRow.className = 'group-data';
-            for (var f = 0; f < test[0].length; f++) { // Добавляем данные по типу группы
+            for (var f = 0; f < data[i].length-1; f++) { // Добавляем данные по типу группы
               var dataCell = document.createElement('td'); // Создаем поле
               dataRow.appendChild(dataCell);
-              dataCell.innerHTML = test[i][f];
-            rows[j].parentNode.insertBefore(dataRow, rows[j+1]);
+              dataCell.innerHTML = data[i][f];
+              rows[j].parentNode.insertBefore(dataRow, rows[j+1]);
             }
             break; // принудительно выходим из цикла
         }
