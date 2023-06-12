@@ -25,8 +25,7 @@ def process_date():
     branches = stats_of_branch(all_count)
     serialized_data = json.dumps(all_count)
     serialized_data_with_brackets = '[' + serialized_data[1:-1] + ']'
-    return render_template('index.html', attendance_report=attendance_report(formatted_date,endings), endings=endings,
-                           all_TEST_count=serialized_data_with_brackets, branches = branches)
+    return render_template('index.html', attendance_report=attendance_report(formatted_date, endings), endings=endings, all_TEST_count=serialized_data_with_brackets,branches=branches)
 
 # Выводит стату по дате и в порядке групп
 def attendance_report(formatted_date, endings):
@@ -99,6 +98,7 @@ def stats_of_group(group, formatted_date):
     # print(final_stats, group) # Для удобства, можно посмотреть вывод в теримнале
     return final_stats
 
+
 def stats_of_branch(stats_of_groups):
 
     branches = []
@@ -127,19 +127,21 @@ def stats_of_branch(stats_of_groups):
         else:
             final_stats.append("0%")
             final_stats.append("0%")
-        
-        # Поле "Итого"
-        branch_stats.insert(0,"Итого")
-        
-        # Добавляем 3 пустых значения
-        for i in range(3):
-            branch_stats.insert(0,"")
-        
+
         # Подразделение
         branch_stats.append(branch)
-
+        if branch == 1:
+            branch_stats.insert(0, "Педагогическое отделение")
+        elif branch == 2:
+            branch_stats.insert(0, "Техническое отделение")
+        elif branch == 3:
+            branch_stats.insert(0, "Айти-отделение")
+        else:
+            branch_stats.insert(0, "ТЕСТ-отделение")
+        # print(branch_stats)
         final_stats.append(branch_stats)
         branch_stats = [0,0,0,0]
+    # print(final_stats)
     return final_stats
 
 
