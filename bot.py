@@ -167,8 +167,25 @@ async def load_reason_U(message: types.Message, state: FSMContext)-> None:
         reason.append(int(message.text)) #БОЛЕЗНЬ  ИНДЕКС [3]
         present = await all_that_present(reason[1], reason[2], reason[3], message.from_user.id)
         if present or present == 0:
-            await message.answer('Что сделано куратором/заведующим отделением')
-            await Attendance.comment.set()
+            if reason[1] > 0:
+                kb_groups = ReplyKeyboardMarkup(resize_keyboard=True)
+                kb_groups.add(KeyboardButton("Отмена"))
+                await message.answer('Введите фамилии отсутствующих по неуважительной')
+                await Attendance.comment.set()
+            else:
+                reason.append(str("-")) # Комментарий [4]
+                present = await all_that_present(reason[1], reason[2], reason[3], message.from_user.id)
+                itog_percent1 = await itog_percent(reason[1], reason[2], reason[3], message.from_user.id)
+                itog_percent2 = await itog_percent_u_b(reason[1], message.from_user.id)
+                date_obj = datetime.now().date()   # Получаем текущую дату и преобразуем в объект даты
+                date_str = str(date_obj.strftime('%Y-%m-%d'))   # Преобразуем объект даты в строку в нужном формате
+                # Тут заносим
+                await in_dbase(reason[0], reason[1], reason[2], reason[3], present, reason[4], date_str,itog_percent1,itog_percent2)
+                reason.clear()
+                await bot.send_message(message.from_user.id,
+                                           text='Вы успешно ввели данные.',
+                                           reply_markup=kb)
+                await state.finish()
         else:
             await state.finish()
             reason.clear()

@@ -179,14 +179,16 @@ async def schedule_bot(bot):
     while True:
         current_time = datetime.now().strftime("%H:%M")
         current_date = datetime.now().strftime('%Y-%m-%d')
-        # Уведомление
-        if current_time == "12:00" or current_time == "15:00":
-            for user_id in USERS:
-                if await check_stats_notify(user_id, current_date): # Проверяет введены ли данные
-                    await send_notification(user_id, bot)
-        # Новый день
-        if current_time == "00:01" or current_time == "01:00": # час ночи на всякий случай
-            await new_day()
+        current_day = datetime.today().strftime("%A")
+        # Уведомление кроме воскресенья
+        if current_day != "Sunday":
+            if current_time == "12:00" or current_time == "15:00":
+                for user_id in USERS:
+                    if await check_stats_notify(user_id, current_date): # Проверяет введены ли данные
+                        await send_notification(user_id, bot)
+            # Новый день
+            if current_time == "00:01" or current_time == "01:00": # час ночи на всякий случай
+                await new_day()
         await asyncio.sleep(60)  # Проверяем каждую минуту
 
 
