@@ -2,73 +2,96 @@
 <html>
 <head>
   <title>Отчет по посещаемости</title>
-  <style>
-    body {
-      background-color: #f5f5f5;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      color: #333333;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    h2 {
-      color: #333333;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    p {
-      color: #333333;
-      text-align: left;
-      margin-bottom: 20px;
-    }
-    form {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    input[type="date"] {
-      padding: 10px;
-      border-radius: 5px;
-    }
-    input[type="submit"] {
-      padding: 10px 20px;
-      border-radius: 5px;
-      background-color: #4CAF50;
-      color: #ffffff;
-      border: none;
-      cursor: pointer;
-    }
-    input[type="submit"]:hover {
-      background-color: #45a049;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    th, td {
-      border: 1px solid #dddddd;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background-color: #f9f9f9;
-    }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-    tr.none-values {
-      background-color: #e7ebad;
-      color: #615f5f;
-    }
-    .group-data {
-      border-top: 2px solid rgb(17, 37, 11);
-      margin-top: 20px ;
-      border-bottom: 2px solid rgb(17, 37, 11);
-    }
-  </style>
+<style>
+body {
+  background-color: #f8f8f8;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+h1, h2 {
+  color: #555555;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+p {
+  color: #555555;
+  text-align: justify;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+input[type="date"] {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #cccccc;
+}
+
+input[type="submit"] {
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: #15a551;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #37b942;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #dddddd;
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  background-color: #f0f0f0;
+}
+
+tr:nth-child(even) {
+  background-color: #f8f8f8;
+}
+
+tr.none-values {
+  background-color: #e7ebad;
+  color: #615f5f;
+}
+
+tr.group-data {
+  border-top: 2px solid #3a3d3b;
+  background-color: #8d8b8da4;
+  border-bottom: 2px solid #3a3d3b;
+  font-weight: bold;
+}
+
+tr.otd-data {
+  border-top: 3px solid #3a3d3b;
+  background-color: #5c5a5ca4;
+  border-bottom: 2px solid #3a3d3b;
+  font-weight: bold;
+}
+
+tr.all-data {
+  background-color: #5c5a5ca4;
+  border-bottom: 2px solid #3a3d3b;
+  font-weight: bold;
+}
+</style>
+
 </head>
 <body>
   <h1>Отчет по посещаемости КЦПТ</h1>
@@ -95,7 +118,10 @@
       <th>% посещаемости c учетом У и Б</th>
     </tr>
     {% for note in attendance_report %}
-      <tr{% if note[4] == "-" or note[5] == "-" or note[6] == "-" %} class="none-values"{% endif %}>
+      <tr{% if note[4] == "-" or note[5] == "-" or note[6] == "-" %} class="none-values"{% endif %}
+        {% if note[3].startswith('ИТОГО:') %} class="group-data"{% endif %}
+        {%if note[3].startswith('ИТОГО по отделениям') %} class="otd-data"{% endif %}
+        {%if note[3].startswith('ИТОГО ПО ВСЕМ ') %} class="all-data"{% endif %}>
         <td>{{ note[0] }}</td>
         <td>{{ note[1] }}</td>
         <td>{{ note[2] }}</td>
