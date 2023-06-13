@@ -46,7 +46,6 @@ async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reaso
     comment = "{comment}",
     itog_percent = "{itog_percent1}",
     itog_u_b = "{itog_percent2}"
-
     WHERE date_of_report = '{date_of_report}' and group_name = '{group_name}'""")
     db.commit()
 
@@ -54,61 +53,38 @@ async def in_dbase(group_name, disrespectful_reason, valid_reason, disease_reaso
 # Эта гавнина работает PogChamp :V
 # Высчитывает присутствующих
 async def all_that_present(disrespectful_reason, valid_reason, disease_reason, user_id):
-    curator_db_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
-    curator_db_id = curator_db_id.translate(delete)
-    how_much = str(cur.execute(f"SELECT how_much FROM groups WHERE curator_id='{curator_db_id}'").fetchone())
-    how_much = int(how_much.translate(delete))
+    curator_db_id = list(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())[0]
+    how_much = list(cur.execute(f"SELECT how_much FROM groups WHERE curator_id='{curator_db_id}'").fetchone())[0]
     present = how_much - disrespectful_reason - valid_reason - disease_reason
     if present >= 0:
         return present
 
 # Высчитывает проценты посещаемости без у и б
 async def itog_percent(disrespectful_reason, valid_reason, disease_reason, user_id):
-    conn = sl.connect('database_project.db')
-    cur = conn.cursor()
-    curator_db_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id=?", (user_id,)).fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
-    curator_db_id = curator_db_id.translate(delete)
-    how_much = cur.execute(f"SELECT how_much FROM groups WHERE curator_id=?", (curator_db_id,)).fetchone()
-    how_much = int(str(how_much).translate(delete))
+    curator_db_id = list(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id=?", (user_id,)).fetchone())[0]
+    how_much = list(cur.execute(f"SELECT how_much FROM groups WHERE curator_id=?", (curator_db_id,)).fetchone())[0]
     itog_percent1 = ((how_much - disrespectful_reason - valid_reason - disease_reason) / how_much) * 100
     itog_percent1 = str(round(itog_percent1))+'%'
-    conn.close()
     return itog_percent1
 
 # Высчитывает проценты посещаемости с у и б
 async def itog_percent_u_b(disrespectful_reason, user_id):
-    conn = sl.connect('database_project.db')
-    cur = conn.cursor()
-    curator_db_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id=?", (user_id,)).fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
-    curator_db_id = curator_db_id.translate(delete)
-    how_much = cur.execute(f"SELECT how_much FROM groups WHERE curator_id=?", (curator_db_id,)).fetchone()
-    how_much = int(str(how_much).translate(delete))
+    curator_db_id = list(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id=?", (user_id,)).fetchone())[0]
+    how_much = list(cur.execute(f"SELECT how_much FROM groups WHERE curator_id=?", (curator_db_id,)).fetchone())[0]
     itog_percent1 = ((how_much - disrespectful_reason) / how_much) * 100
     itog_percent_u_b = str(round(itog_percent1))+'%'
-
-    conn.close()
     return itog_percent_u_b
 
 # Функция, которая выводит группы
 async def get_unoccupied_groups(user_id):
-    curator_id = str(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None}
-    curator_id = curator_id.translate(delete)
-    info = str(cur.execute(f'SELECT group_name FROM groups WHERE curator_id="{curator_id}"').fetchall())
-    delete = {ord('[') : None, ord(']') : None, ord('(') : None, ord(')') : None, ord(',') : None, ord("'") : None}
-    info = info.translate(delete).split()
-    if len(info)>1:
-        info = [info[i] + ' ' + info[i+1] for i in range(0, len(info), 2)]
+    curator_id = list(cur.execute(f"SELECT curator_id FROM curators WHERE chat_id='{user_id}'").fetchone())[0]
+    info = cur.execute(f'SELECT group_name FROM groups WHERE curator_id="{curator_id}"').fetchall()
+    info = [list(i)[0] for i in info]
     return info
 
 # Достает фио куратора по chat_id
 async def get_curator_fio(user_id):
-    curator_fio = str(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())
-    delete = {ord('(') : None, ord(')') : None, ord(',') : None, ord('\'') : None}
-    curator_fio = curator_fio.translate(delete)
+    curator_fio = list(cur.execute(f"SELECT curator_fio FROM curators WHERE chat_id='{user_id}'").fetchone())[0]
     return curator_fio
 
 # Вытаскивает группу и введенные данные в список
@@ -117,7 +93,6 @@ async def get_stats(user_id, date_of_report):
     stats = list(cur.execute(f"""SELECT group_name, disrespectful_reason, valid_reason, disease_reason
                             FROM attendance_report
                             WHERE date_of_report = '{date_of_report}' and curator_fio = '{fio}' """).fetchall())
-    delete = {ord('[') : None, ord(']') : None, ord('(') : None, ord(')') : None, ord(',') : None, ord("'") : None}
     stats = [list(i) for i in stats]
     return stats
 
