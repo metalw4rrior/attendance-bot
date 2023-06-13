@@ -18,28 +18,45 @@ def process_date():
     date_str = request.form['date']
     date_obj = datetime.strptime(date_str, '%Y-%m-%d')
     formatted_date = date_obj.strftime('%Y-%m-%d')
-    endings = get_groups_names(formatted_date)
-    all_count = []
-    for i in endings:
-        all_count.append(stats_of_group(i, formatted_date))
-    branches = stats_of_branch(all_count)
-    serialized_data = json.dumps(all_count)
-    serialized_data_with_brackets = '[' + serialized_data[1:-1] + ']'
-    return render_template('index.html', attendance_report=attendance_report(formatted_date, endings), endings=endings, all_TEST_count=serialized_data_with_brackets,branches=branches)
+    
+    # Достает имена групп в порядке отделений 
+    groups = get_groups_names(formatted_date)
+    
+    # Общая стата по группам
+    group_stats = []
+    for group in groups:
+        group_stats.append(stats_of_group(group, formatted_date))
+    
+    report = attendance_report(formatted_date, groups) # Тут стата по каждой группе и группе групп :Р
+    branches = stats_of_branch(group_stats) # Тут стата по отделениям
+    last_row = last_row_stats(branches)
+    # Цикл, который добавляет стату по отделениям
+    for i in range(len(branches)):
+        for j in range(len(report), 0, -1):
+            if report[j-1][-1] == branches[i][-1]:
+                report.insert(j, branches[i])
+                break
+    report.append(last_row) # Стата по ВСЕМ группам (самая последняя строка)
+    return render_template('index.html', attendance_report=report)
 
 # Выводит стату по дате и в порядке групп
 def attendance_report(formatted_date, endings):
     db = sqlite3.connect('database_project.db')         # Оно работает благодаря get_groups_names,
-    cur = db.cursor()                                   # который собирает отсортированные группы по подразделениям
+    cur = db.cursor()                                   # который собирает отсортированные группы по отделениям
     result = []
     for group in endings:
-        attendance_report = cur.execute(f"""SELECT * FROM attendance_report
-        WHERE group_name LIKE '% {group}%' AND date_of_report == '{formatted_date}' ORDER BY group_name""").fetchall()
-        for i in attendance_report:
-            result.append(i)
+        attendance_report = cur.execute(f"""SELECT attendance_report.*, branch_id
+        FROM attendance_report
+        JOIN groups ON attendance_report.group_name = groups.group_name
+        WHERE attendance_report.group_name LIKE '% {group}%' AND attendance_report.date_of_report = '{formatted_date}'
+        ORDER BY attendance_report.group_name""").fetchall()
+        for current_group_stats in attendance_report:
+            result.append(current_group_stats)
+        current_group_final = stats_of_group(group, formatted_date)
+        result.append(current_group_final)
     return result
 
-# Достает имена и сортирует по подразделению
+# Достает имена и сортирует по отделениям
 def get_groups_names(formatted_date):
     db = sqlite3.connect('database_project.db')
     cur = db.cursor()
@@ -56,11 +73,11 @@ def get_groups_names(formatted_date):
 def stats_of_group(group, formatted_date):
     db = sqlite3.connect('database_project.db')
     cur = db.cursor()
-    final_stats = [0,0,0,0]
+    group_stats = [0,0,0,0]
     stats_of_one_type_of_group = cur.execute(f"""SELECT valid_reason, disrespectful_reason, disease_reason, who_is_present, branch_id
     FROM attendance_report
     JOIN groups ON attendance_report.group_name = groups.group_name
-    WHERE attendance_report.group_name LIKE '% {group}' AND attendance_report.date_of_report = '{formatted_date}'
+    WHERE attendance_report.group_name LIKE '% {group}%' AND attendance_report.date_of_report = '{formatted_date}'
     ORDER BY attendance_report.group_name""").fetchall()
     stats_of_one_type_of_group = [list(i) for i in stats_of_one_type_of_group]
     
@@ -68,35 +85,32 @@ def stats_of_group(group, formatted_date):
     for stats_of_one_group in stats_of_one_type_of_group:
         for stat in range(len(stats_of_one_group)-1):
             if stats_of_one_group[stat] != "-":
-                final_stats[stat]+=int(stats_of_one_group[stat])
+                group_stats[stat]+=int(stats_of_one_group[stat])
     
     # Суммируем всех в одну переменную
     sum_all = 0
-    for stat in range(len(final_stats)):
-        if final_stats[stat] != "-":
-            sum_all+=int(final_stats[stat])
+    for stat in range(len(group_stats)):
+        if group_stats[stat] != "-":
+            sum_all+=int(group_stats[stat])
     
     # Высчитываем общие проценты для группы
-    if sum_all!=0 and final_stats[0] != "-":
-        final_stats.append("")     # Комментарий
-        final_stats.append(str(round(int(final_stats[3])/sum_all*100))+"%")
-        final_stats.append(str(round((sum_all-int(final_stats[1]))/sum_all*100))+"%")
+    if sum_all!=0 and group_stats[0] != "-":
+        group_stats.append("")     # Комментарий
+        group_stats.append(str(round(int(group_stats[3])/sum_all*100))+"%")
+        group_stats.append(str(round((sum_all-int(group_stats[1]))/sum_all*100))+"%")
     else:
-        final_stats.append("")     # Комментарий
-        final_stats.append("0%")
-        final_stats.append("0%")
-
-    # Поле "Итого"
-    final_stats.insert(0,"Итого")
+        group_stats.append("")     # Комментарий
+        group_stats.append("0%")
+        group_stats.append("0%")
     
-    # Добавляем 3 пустых значения
-    for i in range(3):
-        final_stats.insert(0,"")
+    # Поля левее от статистики
+    group_stats.insert(0,"ИТОГО:")
+    group_stats.insert(0,"")
+    group_stats.insert(0,f"Группа: {group}")
+    group_stats.insert(0,"")
     
-    final_stats.append(stats_of_one_type_of_group[0][4])
-
-    # print(final_stats, group) # Для удобства, можно посмотреть вывод в теримнале
-    return final_stats
+    group_stats.append(stats_of_one_type_of_group[0][4])
+    return group_stats
 
 
 def stats_of_branch(stats_of_groups):
@@ -106,7 +120,7 @@ def stats_of_branch(stats_of_groups):
         branches.append(i[-1])
     branches = list(set(branches))
     
-    final_stats = []
+    branches_stats = []
 
     branch_stats = [0,0,0,0]
     for branch in branches:
@@ -116,7 +130,6 @@ def stats_of_branch(stats_of_groups):
                 branch_stats[1]+=group[5]
                 branch_stats[2]+=group[6]
                 branch_stats[3]+=group[7]
-        
         sum_all = sum(branch_stats)
         
         # Пустое поле (которое коммент)
@@ -125,25 +138,49 @@ def stats_of_branch(stats_of_groups):
             branch_stats.append(str(round(int(branch_stats[3])/sum_all*100))+"%")
             branch_stats.append(str(round((sum_all-int(branch_stats[1]))/sum_all*100))+"%")
         else:
-            final_stats.append("0%")
-            final_stats.append("0%")
-
-        # Подразделение
+            branch_stats.append("0%")
+            branch_stats.append("0%")
+        
+        # Номер отделения
         branch_stats.append(branch)
-        if branch == 1:
-            branch_stats.insert(0, "Педагогическое отделение")
-        elif branch == 2:
-            branch_stats.insert(0, "Техническое отделение")
-        elif branch == 3:
-            branch_stats.insert(0, "Айти-отделение")
-        else:
-            branch_stats.insert(0, "ТЕСТ-отделение")
-        # print(branch_stats)
-        final_stats.append(branch_stats)
+        
+        db = sqlite3.connect('database_project.db')
+        cur = db.cursor()
+        branch_name = cur.execute(f"SELECT branch_name, manager_fio FROM branches WHERE branch_id = {branch}").fetchone()
+        
+        # Поле "Итого"
+        branch_stats.insert(0,"ИТОГО по отделениям:")
+        branch_stats.insert(0,branch_name[1]) # Заведующий отделением
+        
+        # Поля до статистики
+        branch_stats.insert(0,branch_name[0]) # Название отделения
+        branch_stats.insert(0,"")
+        branches_stats.append(branch_stats)
         branch_stats = [0,0,0,0]
-    # print(final_stats)
-    return final_stats
+    return branches_stats
 
+# Высчитывает все данные для последней строки
+def last_row_stats(stats_of_branch):
+    final_stats = [0,0,0,0]
+    for stats in stats_of_branch:
+        final_stats[0] += stats[4]
+        final_stats[1] += stats[5]
+        final_stats[2] += stats[6]
+        final_stats[3] += stats[7]
+    sum_all = sum(final_stats)
+    final_stats.append("")
+    
+    if sum_all!=0:
+        final_stats.append(str(round(int(final_stats[3])/sum_all*100))+"%")
+        final_stats.append(str(round((sum_all-int(final_stats[1]))/sum_all*100))+"%")
+    else:
+        final_stats.append("0%")
+        final_stats.append("0%")
+    
+    final_stats.insert(0,"ИТОГО ПО ВСЕМ ГРУППАМ:")
+    for i in range(3):
+        final_stats.insert(0,"")
+    return final_stats
 
 
 
