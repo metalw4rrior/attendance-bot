@@ -94,12 +94,10 @@ tr.all-data {
 
 </head>
 <body>
-  <h1>Отчет по посещаемости КЦПТ</h1>
-  <a href="/month_report">Перейти к month_report</a>
-<form id="date-form" action="/process_date" method="post">
-  <input type="date" id="date-input" name="date" required>
-  <input type="submit" id="submit-button" value="Выбрать дату">
-</form>
+  <h1>Отчет по посещаемости КЦПТ за месяц</h1>
+  <form id="date-form" action="/month_report" method="post">
+    <input type="month" id="date-input" name="date" required>
+    <input type="submit" id="submit-button" value="Выбрать месяц"></form>
   {% if message %}
     <div class="message">{{ message }}</div>
   {% endif %}
@@ -117,7 +115,7 @@ tr.all-data {
       <th>% посещаемости</th>
       <th>% посещаемости c учетом У и Б</th>
     </tr>
-    {% for note in attendance_report %}
+    {% for note in month_result %}
       <tr{% if note[4] == "-" or note[5] == "-" or note[6] == "-" %} class="none-values"{% endif %}
         {% if note[3].startswith('ИТОГО:') %} class="group-data"{% endif %}
         {%if note[3].startswith('ИТОГО по отделениям') %} class="otd-data"{% endif %}
@@ -136,7 +134,7 @@ tr.all-data {
       </tr>
     {% endfor %}
   </table>
-  <script>
+  <!-- <script>
   document.addEventListener("DOMContentLoaded", function() {
     var currentDate = new Date().toISOString().split('T')[0];
     document.getElementById("date-input").value = currentDate;
@@ -147,7 +145,6 @@ tr.all-data {
       document.getElementById("date-form").submit();
     }
   });
-  </script>
+  </script> -->
 </body>
 </html>
-

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sqlite3
 from sqlite_func import db_start
-from flask import Flask, render_template,request
+from flask import Flask, render_template,request,redirect
 from datetime import datetime, date
 import json
 from collections import OrderedDict
@@ -12,7 +12,6 @@ app = Flask(__name__)
 def index():
     current_date = date.today().isoformat()
     return render_template('index.html', current_date=current_date)
-
 @app.route('/process_date', methods=['POST'])
 def process_date():
     date_str = request.form['date']
@@ -55,6 +54,82 @@ def attendance_report(formatted_date, endings):
         current_group_final = stats_of_group(group, formatted_date)
         result.append(current_group_final)
     return result
+
+@app.route('/month_report', methods=['GET','POST'])
+def month_report():
+    if request.method == 'GET':
+        # Обработка GET запроса
+        return render_template('index_sobaki.html')
+    date_str = request.form['date']
+# Изменяем формат даты
+    date_obj = datetime.strptime(date_str, '%Y-%m')
+    formatted_date = date_obj.strftime('%Y-%m')
+    # Достает имена групп в порядке отделений 
+    groups = get_groups_names(formatted_date)
+    # Общая стата по группам
+    group_stats = []
+    for group in groups:
+        group_stats.append(stats_of_group(group, formatted_date))
+    report = month_result(formatted_date, groups) # Тут стата по каждой группе и группе групп :Р
+    branches = stats_of_branch(group_stats) # Тут стата по отделениям
+    last_row = last_row_stats(branches)
+    # Цикл, который добавляет стату по отделениям
+    for i in range(len(branches)):
+        for j in range(len(report), 0, -1):
+            if report[j-1][-1] == branches[i][-1]:
+                report.insert(j, branches[i])
+                break
+    report.append(last_row) # Стата по ВСЕМ группам (самая последняя строка)
+    if request.method == 'GET':
+        # Обработка нажатия кнопки "Перейти к month_report"
+        return redirect('/month_report')
+    # Отображение страницы month_report
+    print(report)
+    return render_template('index_sobaki.html', month_result=report)
+
+# Выводит стату по дате и в порядке групп
+def month_result(formatted_date, endings):
+    db = sqlite3.connect('database_project.db')         # Оно работает благодаря get_groups_names,
+    cur = db.cursor()                                   # который собирает отсортированные группы по отделениям
+    result = []
+    for group in endings:
+        attendance_report = cur.execute(f"""SELECT attendance_report.group_name,
+        attendance_report.curator_fio,
+        CAST(SUM(attendance_report.valid_reason) as INT),
+        CAST(SUM(attendance_report.disease_reason) as INT),
+        CAST(SUM(attendance_report.disease_reason) as INT),
+        CAST(SUM(attendance_report.who_is_present) as INT),
+        branch_id
+        FROM attendance_report
+        JOIN groups ON attendance_report.group_name = groups.group_name
+        WHERE attendance_report.group_name LIKE '% {group}%' AND attendance_report.date_of_report LIKE '%{formatted_date}%'
+        GROUP BY attendance_report.group_name, attendance_report.curator_fio, branch_id
+        ORDER BY attendance_report.group_name""").fetchall()
+        for current_group_stats in attendance_report:
+            # print(list(current_group_stats), end="\n")
+            # Суммируем всех в одну переменную
+            group_stats = list(current_group_stats)
+            sum_all = sum(current_group_stats[2:6])
+            # print(group_stats[0], sum_all, group_stats[2:6])
+            # Высчитываем общие проценты для группы
+            if sum_all!=0 and group_stats[0] != "-":
+                group_stats.insert(6,str(round((sum_all-int(group_stats[2]))/sum_all*100))+"%")
+                group_stats.insert(6,str(round(int(group_stats[5])/sum_all*100))+"%")
+                group_stats.insert(6,"")     # Комментарий
+                group_stats.insert(2,"")     # Дата
+                group_stats.insert(0,"")     # ID
+            else:
+                group_stats.insert(6,"0%")
+                group_stats.insert(6,"0%")
+                group_stats.insert(6,"")     # Комментарий
+                group_stats.insert(2,"")     # Дата
+                group_stats.insert(0,"")     # ID
+            result.append(group_stats)
+            # print(list(current_group_stats))
+        current_group_final = stats_of_group(group, formatted_date)
+        result.append(current_group_final)
+    return result
+
 
 # Достает имена и сортирует по отделениям
 def get_groups_names(formatted_date):
