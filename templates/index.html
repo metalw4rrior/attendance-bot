@@ -90,12 +90,29 @@ tr.all-data {
   border-bottom: 2px solid #3a3d3b;
   font-weight: bold;
 }
+.beautiful-link {
+        color: #000000; 
+        font-weight: bold; 
+        text-decoration: none; 
+        display: inline-block; 
+        padding: 8px 16px; 
+        border: 2px solid #000000; 
+        border-radius: 4px; 
+    }
+
+    .beautiful-link:hover {
+        text-decoration: underline; /*  подчеркивание при наведении курсора */
+    }
+
+    .beautiful-link:visited {
+        color: #000000; /* цвет текста ссылки после нажатия */
+    }
 </style>
 
 </head>
 <body>
   <h1>Отчет по посещаемости КЦПТ</h1>
-  <a href="/month_report">Статистика за месяц</a>
+  <a href="/month_report" class="beautiful-link">Посмотреть стратистику за месяц</a>
 <form id="date-form" action="/process_date" method="post">
   <input type="date" id="date-input" name="date" required>
   <input type="submit" id="submit-button" value="Выбрать дату">
