@@ -95,31 +95,46 @@ tr.all-data {
 </head>
 <body>
   <h1>Отчет по посещаемости КЦПТ за месяц</h1>
-  <form id="date-form" action="/month_report" method="post">
-    <input type="month" id="date-input" name="date" required>
-    <input type="submit" id="submit-button" value="Выбрать месяц"></form>
+  <a href="/process_date">Статистика за день</a>
+  <!-- <form id="month-form" action="/process_month" method="post"> -->
+  <!-- <input type="date" id="date-input" name="date" required> -->
+  <form id="month-form" action="/month_report" method="post">
+    <select id="month-select" name="month" required>
+      <option value="" disabled selected>Выберите месяц</option>
+      <option value="01">Январь</option>
+      <option value="02">Февраль</option>
+      <option value="03">Март</option>
+      <option value="04">Апрель</option>
+      <option value="05">Май</option>
+      <option value="06">Июнь</option>
+      <option value="07">Июль</option>
+      <option value="08">Август</option>
+      <option value="09">Сентябрь</option>
+      <option value="10">Октябрь</option>
+      <option value="11">Ноябрь</option>
+      <option value="12">Декабрь</option>
+    </select>
+    <input type="submit" id="submit-button" value="Выбрать месяц">
+  </form>
   {% if message %}
     <div class="message">{{ message }}</div>
   {% endif %}
   <table>
     <tr>
-      <th>ID</th>
       <th>Группа</th>
       <th>Куратор</th>
-      <th>Дата</th>
       <th>Уважительная</th>
       <th>Неуважительная</th>
       <th>Болезнь</th>
       <th>Присутствуют</th>
-      <th>Примечание</th>
       <th>% посещаемости</th>
       <th>% посещаемости c учетом У и Б</th>
     </tr>
     {% for note in month_result %}
-      <tr{% if note[4] == "-" or note[5] == "-" or note[6] == "-" %} class="none-values"{% endif %}
-        {% if note[3].startswith('ИТОГО:') %} class="group-data"{% endif %}
-        {%if note[3].startswith('ИТОГО по отделениям') %} class="otd-data"{% endif %}
-        {%if note[3].startswith('ИТОГО ПО ВСЕМ ') %} class="all-data"{% endif %}>
+      <tr{% if note[2] == "-" or note[3] == "-" or note[4] == "-" %} class="none-values"{% endif %}
+        {% if note[1].startswith('ИТОГО:') %} class="group-data"{% endif %}
+        {%if note[1].startswith('ИТОГО по отделениям') %} class="otd-data"{% endif %}
+        {%if note[1].startswith('ИТОГО ПО ВСЕМ ') %} class="all-data"{% endif %}>
         <td>{{ note[0] }}</td>
         <td>{{ note[1] }}</td>
         <td>{{ note[2] }}</td>
@@ -128,23 +143,8 @@ tr.all-data {
         <td>{{ note[5] }}</td>
         <td>{{ note[6] }}</td>
         <td>{{ note[7] }}</td>
-        <td>{{ note[8] }}</td>
-        <td>{{ note[9] }}</td>
-        <td>{{ note[10] }}</td>
       </tr>
     {% endfor %}
   </table>
-  <!-- <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    var currentDate = new Date().toISOString().split('T')[0];
-    document.getElementById("date-input").value = currentDate;
-
-    // Проверяем, была ли форма уже отправлена ранее
-    if (!sessionStorage.getItem("formSubmitted")) {
-      sessionStorage.setItem("formSubmitted", "true");
-      document.getElementById("date-form").submit();
-    }
-  });
-  </script> -->
 </body>
 </html>
