@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import sqlite3
+import json
+import re
 from sqlite_func import db_start
 from flask import Flask, render_template,request,redirect
 from datetime import datetime, date
-import json
 from collections import OrderedDict
 
 app = Flask(__name__)
@@ -24,7 +25,7 @@ def process_date():
     formatted_date = date_obj.strftime('%Y-%m-%d')
     
     # Достает имена групп в порядке отделений 
-    groups = get_groups_names(formatted_date)
+    groups = get_groups_names()
     
     # Общая стата по группам
     group_stats = []
@@ -53,28 +54,26 @@ def attendance_report(formatted_date, endings):
         attendance_report = cur.execute(f"""SELECT attendance_report.*, branch_id
         FROM attendance_report
         JOIN groups ON attendance_report.group_name = groups.group_name
-        WHERE attendance_report.group_name LIKE '% {group}%' AND attendance_report.date_of_report = '{formatted_date}'
-        ORDER BY attendance_report.group_name""").fetchall()
+        WHERE (attendance_report.group_name GLOB '*{group}' OR attendance_report.group_name GLOB '{group}*')
+        AND attendance_report.date_of_report LIKE '{formatted_date}'
+        ORDER BY attendance_report.group_name, branch_id""").fetchall()
         for current_group_stats in attendance_report:
             result.append(current_group_stats)
         current_group_final = stats_of_group(group, formatted_date)
         result.append(current_group_final)
     return result
 
-
-
 # Достает имена и сортирует по отделениям
-def get_groups_names(formatted_date):
+def get_groups_names():
     db = sqlite3.connect('database_project.db')
     cur = db.cursor()
-    groups = cur.execute("SELECT group_name, branch_id FROM groups ORDER BY branch_id").fetchall()
-    groups = [list(i) for i in groups]
-    name_of_group = []
-    for i in groups:
-        group = i[0].split(" ")
-        name_of_group.append(" ".join(group[1:]))
-    groups_names = list(OrderedDict.fromkeys(name_of_group))
+    groups = cur.execute("SELECT group_name FROM groups ORDER BY branch_id").fetchall()
+    groups = [list(i)[0] for i in groups]
+    for i in range(len(groups)):
+        groups[i] = re.findall(r'([а-яА-Яa-zA-Z\s]+)', groups[i])[0].strip()
+    groups_names = list(OrderedDict.fromkeys(groups))
     return groups_names
+
 
 # Собирает в список всю стату по группам одного типа
 def stats_of_group(group, formatted_date):
@@ -84,7 +83,7 @@ def stats_of_group(group, formatted_date):
     stats_of_one_type_of_group = cur.execute(f"""SELECT valid_reason, disrespectful_reason, disease_reason, who_is_present, branch_id
     FROM attendance_report
     JOIN groups ON attendance_report.group_name = groups.group_name
-    WHERE attendance_report.group_name LIKE '% {group}%' AND attendance_report.date_of_report = '{formatted_date}'
+    WHERE attendance_report.group_name LIKE '%{group}%' AND attendance_report.date_of_report = '{formatted_date}'
     ORDER BY attendance_report.group_name""").fetchall()
     stats_of_one_type_of_group = [list(i) for i in stats_of_one_type_of_group]
     # Суммируем всю стату по категориям
@@ -233,7 +232,7 @@ def month_attendance_report(formatted_date, endings):
         branch_id
         FROM attendance_report
         JOIN groups ON attendance_report.group_name = groups.group_name
-        WHERE attendance_report.group_name LIKE '% {group}%' AND attendance_report.date_of_report LIKE '%{formatted_date}%'
+        WHERE attendance_report.group_name LIKE '%{group}%' AND attendance_report.date_of_report LIKE '%{formatted_date}%'
         GROUP BY attendance_report.group_name, attendance_report.curator_fio, branch_id
         ORDER BY attendance_report.group_name""").fetchall()
         for current_group_stats in attendance_report:
@@ -260,7 +259,7 @@ def month_stats_of_group(group, formatted_date):
     stats_of_one_type_of_group = cur.execute(f"""SELECT valid_reason, disrespectful_reason, disease_reason, who_is_present, branch_id
     FROM attendance_report
     JOIN groups ON attendance_report.group_name = groups.group_name
-    WHERE attendance_report.group_name LIKE '% {group}%' AND attendance_report.date_of_report LIKE '%{formatted_date}%'
+    WHERE attendance_report.group_name LIKE '%{group}%' AND attendance_report.date_of_report LIKE '%{formatted_date}%'
     ORDER BY attendance_report.group_name""").fetchall()
     stats_of_one_type_of_group = [list(i) for i in stats_of_one_type_of_group]
     
