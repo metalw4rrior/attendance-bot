@@ -113,9 +113,8 @@ tr.all-data {
 <body>
   <h1>Отчет по посещаемости КЦПТ за месяц</h1>
   <a href="/process_date" class="beautiful-link" >Вернуться к статистике за день</a>
-  <!-- <form id="month-form" action="/process_month" method="post"> -->
-  <!-- <input type="date" id="date-input" name="date" required> -->
   <form id="month-form" action="/month_report" method="post">
+    <input name="year" type="number">
     <select id="month-select" name="month" required>
       <option value="" disabled selected>Выберите месяц</option>
       <option value="01">Январь</option>

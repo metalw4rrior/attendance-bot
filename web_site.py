@@ -205,7 +205,8 @@ def process_month():
         # Обработка GET запроса
         return render_template('month_report.html')
     month_str = request.form['month']
-    formatted_date = str(datetime.now().year)+"-"+month_str
+    year_str = request.form['year']
+    formatted_date = year_str+"-"+month_str
     # Достает имена групп в порядке отделений 
     groups = get_groups_names()
     # Общая стата по группам
