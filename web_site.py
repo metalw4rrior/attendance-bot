@@ -199,7 +199,7 @@ def process_month():
     month_str = request.form['month']
     formatted_date = str(datetime.now().year)+"-"+month_str
     # Достает имена групп в порядке отделений 
-    groups = get_groups_names(formatted_date)
+    groups = get_groups_names()
     # Общая стата по группам
     group_stats = []
     for group in groups:
@@ -232,7 +232,8 @@ def month_attendance_report(formatted_date, endings):
         branch_id
         FROM attendance_report
         JOIN groups ON attendance_report.group_name = groups.group_name
-        WHERE attendance_report.group_name LIKE '%{group}%' AND attendance_report.date_of_report LIKE '%{formatted_date}%'
+        WHERE (attendance_report.group_name GLOB '*{group}' OR attendance_report.group_name GLOB '{group}*')
+        AND attendance_report.date_of_report LIKE '%{formatted_date}%'
         GROUP BY attendance_report.group_name, attendance_report.curator_fio, branch_id
         ORDER BY attendance_report.group_name""").fetchall()
         for current_group_stats in attendance_report:
