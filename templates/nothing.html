@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Отчет по посещаемости</title>
+<style>
+body {
+  background-color: #f8f8f8;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+h1, h2 {
+  color: #555555;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+p {
+  color: #555555;
+  text-align: justify;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+input[type="date"] {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #cccccc;
+}
+
+input[type="submit"] {
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: #15a551;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #37b942;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #dddddd;
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  background-color: #f0f0f0;
+}
+
+tr:nth-child(even) {
+  background-color: #f8f8f8;
+}
+
+tr.none-values {
+  background-color: #e7ebad;
+  color: #615f5f;
+}
+
+tr.group-data {
+  border-top: 2px solid #3a3d3b;
+  background-color: #8d8b8da4;
+  border-bottom: 2px solid #3a3d3b;
+  font-weight: bold;
+}
+
+tr.otd-data {
+  border-top: 3px solid #3a3d3b;
+  background-color: #5c5a5ca4;
+  border-bottom: 2px solid #3a3d3b;
+  font-weight: bold;
+}
+
+tr.all-data {
+  background-color: #5c5a5ca4;
+  border-bottom: 2px solid #3a3d3b;
+  font-weight: bold;
+}
+.beautiful-link {
+        color: #000000; 
+        font-weight: bold; 
+        text-decoration: none; 
+        display: inline-block; 
+        padding: 8px 16px; 
+        border: 2px solid #000000; 
+        border-radius: 4px; 
+    }
+
+    .beautiful-link:hover {
+        text-decoration: underline; /*  подчеркивание при наведении курсора */
+    }
+
+    .beautiful-link:visited {
+        color: #000000; /* цвет текста ссылки после нажатия */
+    }
+</style>
+
+</head>
+<body>
+  <h1>Тут пока ничего нет</h1>
+  <form id="month-form" action="/month_report" method="post">
+    <select id="month-select" name="month" required>
+      <option value="" disabled selected>Выберите месяц</option>
+      <option value="01">Январь</option>
+      <option value="02">Февраль</option>
+      <option value="03">Март</option>
+      <option value="04">Апрель</option>
+      <option value="05">Май</option>
+      <option value="06">Июнь</option>
+      <option value="07">Июль</option>
+      <option value="08">Август</option>
+      <option value="09">Сентябрь</option>
+      <option value="10">Октябрь</option>
+      <option value="11">Ноябрь</option>
+      <option value="12">Декабрь</option>
+    </select>
+    <input type="submit" id="submit-button" value="Выбрать месяц">
+  </form>
+  <form id="date-form" action="/process_date" method="post">
+    <input type="date" id="date-input" name="date" required>
+    <input type="submit" id="submit-button" value="Выбрать дату">
+  </form>
+</body>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var currentDate = new Date().toISOString().split('T')[0];
+  document.getElementById("date-input").value = currentDate;
+
+  // Проверяем, была ли форма уже отправлена ранее
+  if (!sessionStorage.getItem("formSubmitted")) {
+    sessionStorage.setItem("formSubmitted", "true");
+    document.getElementById("date-form").submit();
+  }
+});
+</script>
+</html>

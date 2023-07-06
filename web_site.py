@@ -31,7 +31,9 @@ def process_date():
     group_stats = []
     for group in groups:
         group_stats.append(stats_of_group(group, formatted_date))
-    
+        if not group_stats[0]:
+            return render_template('nothing.html')
+
     report = attendance_report(formatted_date, groups) # Тут стата по каждой группе и группе групп :Р
     branches = stats_of_branch(group_stats) # Тут стата по отделениям
     last_row = last_row_stats(branches)
@@ -86,6 +88,12 @@ def stats_of_group(group, formatted_date):
     WHERE attendance_report.group_name LIKE '%{group}%' AND attendance_report.date_of_report = '{formatted_date}'
     ORDER BY attendance_report.group_name""").fetchall()
     stats_of_one_type_of_group = [list(i) for i in stats_of_one_type_of_group]
+    
+    # Если пусто вернуть False
+    if not stats_of_one_type_of_group:
+        return False
+
+    
     # Суммируем всю стату по категориям
     for stats_of_one_group in stats_of_one_type_of_group:
         for stat in range(len(stats_of_one_group)-1):
@@ -206,6 +214,9 @@ def process_month():
         group_stats.append(month_stats_of_group(group, formatted_date))
     
     report = month_attendance_report(formatted_date, groups) # Тут стата по каждой группе и группе групп :Р
+    # Если в этот месяц или день нет данных, то выводит страницу
+    if not report:
+        return render_template('nothing.html')
     branches = month_stats_of_branch(group_stats) # Тут стата по отделениям
     last_row = month_last_row_stats(branches)
     # Цикл, который добавляет стату по отделениям
@@ -249,6 +260,10 @@ def month_attendance_report(formatted_date, endings):
                 group_stats.insert(6,"0%")
             result.append(group_stats)
         current_group_final = month_stats_of_group(group, formatted_date)
+        
+        # Если пусто, вернуть False
+        if not current_group_final:
+            return False
         result.append(current_group_final)
     return result
 
@@ -264,6 +279,10 @@ def month_stats_of_group(group, formatted_date):
     ORDER BY attendance_report.group_name""").fetchall()
     stats_of_one_type_of_group = [list(i) for i in stats_of_one_type_of_group]
     
+    # Если пусто вернуть False
+    if not stats_of_one_type_of_group:
+        return False
+
     # Суммируем всю стату по категориям
     for stats_of_one_group in stats_of_one_type_of_group:
         for stat in range(len(stats_of_one_group)-1):
